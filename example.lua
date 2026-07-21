@@ -1,4 +1,4 @@
-local library = loadstring(readfile("AppleLibraryModified/main.lua"))()
+local library = loadstring(readfile("MacOSLibrary/main.lua"))()
 local window = library:init("Example", true, Enum.KeyCode.LeftControl, true)
 window:Divider("Main Tabs")
 local sec = window:Section("Main Section", "home")

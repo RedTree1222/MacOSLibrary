@@ -2,10 +2,10 @@ for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
     if v:IsA("DepthOfFieldEffect") then v:Destroy() end
 end
 local lib = {}
-local blur = loadstring(game:HttpGet("https://raw.githubusercontent.com/RedTree1222/AppleLibraryModified/refs/heads/main/Blur.luau"))()
+local blur = loadstring(game:HttpGet(""))()
 local lucideIcons = loadstring(game:HttpGet("https://raw.githubusercontent.com/latte-soft/lucide-roblox/master/lib/Icons.luau"))()
 lib.ButtonStyle = "Modern"
-lib.FolderName = "AppleLibraryModified"
+lib.FolderName = "MacOSLibrary"
 local sections = {}
 local workareas = {}
 local notifs = {}
@@ -36,7 +36,7 @@ local function getAsset(path)
     local localPath = fileName
     local fileExists = isfile and isfile(localPath) or pcall(function() return readfile(localPath) end)
     if not fileExists then
-        local url = "https://raw.githubusercontent.com/RedTree1222/AppleLibraryModified/main/" .. path
+        local url = "" .. path
         local ok, content = pcall(function() return game:HttpGet(url) end)
         if ok and content then
             pcall(function()
@@ -264,13 +264,13 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     if deleteprevious then
         local container = gethui and gethui() or game:GetService("CoreGui")
         for _, v in pairs(container:GetChildren()) do
-            if v.Name == "AppleLibrary_GUI" then
+            if v.Name == "MacOSLibrary_GUI" then
                 v:Destroy()
             end
         end
     end
     scrgui = Instance.new("ScreenGui")
-    scrgui.Name = "AppleLibrary_GUI"
+    scrgui.Name = "MacOSLibrary_GUI"
     if syn then syn.protect_gui(scrgui) end
     if gethui then scrgui.Parent = gethui() else scrgui.Parent = game:GetService("CoreGui") end
     scrgui.IgnoreGuiInset = true
@@ -3083,7 +3083,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     end
     local function CreateCreditsTab()
         local credSec = window:Section("Credits", "rbxassetid://10747373426", true)
-        credSec:Divider("Modified AppleLibrary")
+        credSec:Divider("MacOSLibrary")
         local container = credSec:GetContainer()
         local redTreeContainer = Instance.new("Frame")
         redTreeContainer.Parent = container
@@ -3138,13 +3138,13 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
                 zoroG.Rotation = r
             end
         end)
-        credSec:Divider("Original Creator")
+        credSec:Divider("Inspiration")
         local hamza = Instance.new("TextLabel")
         hamza.Parent = container
         hamza.Size = UDim2.new(1, 0, 0, 40)
         hamza.BackgroundTransparency = 1
         hamza.Font = Enum.Font.BuilderSansMedium
-        hamza.Text = "@mham-z (Hamza)"
+        hamza.Text = "Inspired by AppleLibrary"
         hamza.TextSize = 18
         hamza.TextColor3 = Color3.fromRGB(200, 200, 210)
         local grad2 = Instance.new("UIGradient", hamza)
