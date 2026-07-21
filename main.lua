@@ -2,7 +2,7 @@ for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
     if v:IsA("DepthOfFieldEffect") then v:Destroy() end
 end
 local lib = {}
-local blur = loadstring(game:HttpGet(""))()
+local blur = loadstring(game:HttpGet("https://raw.githubusercontent.com/RedTree1222/MacOSLibrary/main/Blur.luau"))()
 local lucideIcons = loadstring(game:HttpGet("https://raw.githubusercontent.com/latte-soft/lucide-roblox/master/lib/Icons.luau"))()
 lib.ButtonStyle = "Modern"
 lib.FolderName = "MacOSLibrary"
@@ -36,7 +36,7 @@ local function getAsset(path)
     local localPath = fileName
     local fileExists = isfile and isfile(localPath) or pcall(function() return readfile(localPath) end)
     if not fileExists then
-        local url = "" .. path
+        local url = "https://raw.githubusercontent.com/RedTree1222/MacOSLibrary/main/" .. path
         local ok, content = pcall(function() return game:HttpGet(url) end)
         if ok and content then
             pcall(function()
