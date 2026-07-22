@@ -322,7 +322,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     KeybindsWindowFrame.Visible = false
     RegisterTheme(KeybindsWindowFrame, "BackgroundColor3", Color3.fromRGB(249, 249, 255), Color3.fromRGB(18, 18, 24))
     local KbBlurFrame = Instance.new("Frame")
-    KbBlurFrame.Name = "blurFrame"
+    KbBlurFrame.Name = "BlurFrame"
     KbBlurFrame.Parent = KeybindsWindowFrame
     KbBlurFrame.BackgroundTransparency = 1
     KbBlurFrame.Position = UDim2.new(0, 24, 0, 24)
@@ -389,7 +389,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     Main.Name = "main"
     Main.Parent = scrgui
     local BlurFrame = Instance.new("Frame")
-    BlurFrame.Name = "blurFrame"
+    BlurFrame.Name = "BlurFrame"
     BlurFrame.Parent = Main
     BlurFrame.BackgroundTransparency = 1
     BlurFrame.Position = UDim2.new(0, 24, 0, 24)
@@ -739,7 +739,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         else
             for _, t in ipairs(MainTabs) do table.insert(AllTabs, t) end
         end
-        local Highlight = Main:FindFirstChild("TabHighlight")
+        local Highlight = Sidebar:FindFirstChild("TabHighlight")
         local ActiveTab = nil
         for _, s in ipairs(Sections) do
             if s.TextColor3 == Color3.fromRGB(255, 255, 255) then
@@ -882,7 +882,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         IsExtraMode = not IsExtraMode
         local OutgoingTabs = IsExtraMode and MainTabs or ExtraTabs
         local IncomingTabs = IsExtraMode and ExtraTabs or MainTabs
-        local Highlight = Main:FindFirstChild("TabHighlight")
+        local Highlight = Sidebar:FindFirstChild("TabHighlight")
         if Highlight then
             TweenService:Create(Highlight, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
                 BackgroundTransparency = 1
@@ -1083,7 +1083,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                         t.TabButton.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34)
                     end
                 end
-                local Highlight = Main:FindFirstChild("TabHighlight")
+                local Highlight = Sidebar:FindFirstChild("TabHighlight")
                 if Highlight then Highlight.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34) end
                 local CurrentSearch = Main:FindFirstChild("search")
                 if CurrentSearch then CurrentSearch.Size = UDim2.new(0, ExpandedSidebarWidth - 8, 0, 34) end
@@ -1708,13 +1708,13 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 MyIco.ImageColor3 = Color3.fromRGB(255, 255, 255)
             end
             local IsNewHighlight = false
-            local Highlight = Main:FindFirstChild("TabHighlight")
+            local Highlight = Sidebar:FindFirstChild("TabHighlight")
             if Highlight then Highlight.Visible = true end
             if not Highlight then
                 IsNewHighlight = true
                 Highlight = Instance.new("Frame")
                 Highlight.Name = "TabHighlight"
-                Highlight.Parent = Main
+                Highlight.Parent = Sidebar
                 Highlight.BackgroundColor3 = CurrentAccentColor
                 local CurrentHighlightWidth = IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7)
                 Highlight.Size = UDim2.new(0, CurrentHighlightWidth, 0, 34)
@@ -1727,27 +1727,10 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     Light = CurrentAccentColor,
                     Dark = CurrentAccentColor
                 })
-                if not ScrollSyncConnected then
-                    ScrollSyncConnected = true
-                    Sidebar:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
-                        local ActiveHighlight = Main:FindFirstChild("TabHighlight")
-                        if ActiveHighlight then
-                            local ActiveTab = nil
-                            for _, s in ipairs(Sections) do
-                                if s.TextColor3 == Color3.fromRGB(255, 255, 255) then
-                                    ActiveTab = s
-                                    break
-                                end
-                            end
-                            if ActiveTab then
-                                ActiveHighlight.Position = UDim2.new(0, ActiveTab.AbsolutePosition.X - Main.AbsolutePosition.X, 0, ActiveTab.AbsolutePosition.Y - Main.AbsolutePosition.Y)
-                            end
-                        end
-                    end)
-                end
+                
             end
-            local TargetY = Sidebar2.AbsolutePosition.Y - Main.AbsolutePosition.Y
-            local TargetX = Sidebar2.AbsolutePosition.X - Main.AbsolutePosition.X
+            local TargetY = Sidebar2.AbsolutePosition.Y - Sidebar.AbsolutePosition.Y + Sidebar.CanvasPosition.Y
+            local TargetX = Sidebar2.AbsolutePosition.X - Sidebar.AbsolutePosition.X
             local CurrentHighlightWidth = IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7)
             if IsNewHighlight then
                 Highlight.Position = UDim2.new(0, TargetX, 0, TargetY)
@@ -3405,7 +3388,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         local PadLeft = IsSidebarCollapsed and 0 or 40
         local HighlightWidth = IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7)
         local TargetIconPos = IsSidebarCollapsed and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0, -16, 0.5, 0)
-        local Highlight = Main:FindFirstChild("TabHighlight")
+        local Highlight = Sidebar:FindFirstChild("TabHighlight")
         if Highlight then
             TweenService:Create(Highlight, TInfo, { Size = UDim2.new(0, HighlightWidth, 0, 34) }):Play()
         end
@@ -3492,7 +3475,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     TweenService:Create(Btn, TInfo, {Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 20)}):Play()
                 end
             end
-            local Highlight = Main:FindFirstChild("TabHighlight")
+            local Highlight = Sidebar:FindFirstChild("TabHighlight")
             if Highlight then
                 TweenService:Create(Highlight, TInfo, {Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34)}):Play()
             end
