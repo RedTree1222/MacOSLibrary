@@ -1,4 +1,4 @@
-# apple library
+# MacOSLibrary
 ui library that looks like apple's macos and ipados.
 
 ## what you need
@@ -7,7 +7,7 @@ you need an executor with `gethui()` or `syn.protect_gui`. tested on potassium a
 ## how to use
 load it directly from github:
 ```lua
-local Library = loadstring(game:HttpGet("https://github.com/RedTree1222/AppleLibraryModified/blob/main/main.lua?raw=true"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/RedTree1222/MacOSLibrary/main/main.lua"))()
 ```
 
 make a window:
@@ -113,12 +113,12 @@ Window:ToggleVisible()
 - custom cursor: uses obsidian style hand pointer when hovering over things. you can disable this in the settings tab.
 
 # images
-![image](https://raw.githubusercontent.com/RedTree1222/AppleLibraryModified/main/Assets/Screenshot%202026-07-18%20075132.png)
+![image](https://raw.githubusercontent.com/RedTree1222/MacOSLibrary/main/Assets/Screenshot%202026-07-18%20075132.png)
 ### window
 ![image](https://user-images.githubusercontent.com/82454201/221863995-7f86524a-c4ea-4123-8978-d57a99421b7c.png)
 ### splash
-![image](https://raw.githubusercontent.com/RedTree1222/AppleLibraryModified/main/Assets/Screenshot%202026-07-18%20075116.png)
+![image](https://raw.githubusercontent.com/RedTree1222/MacOSLibrary/main/Assets/Screenshot%202026-07-18%20075116.png)
 ### temp notif
-![image](https://raw.githubusercontent.com/RedTree1222/AppleLibraryModified/main/Assets/Screenshot%202026-07-18%20075056.png)
+![image](https://raw.githubusercontent.com/RedTree1222/MacOSLibrary/main/Assets/Screenshot%202026-07-18%20075056.png)
 
 got questions? dm me on discord: external.py
