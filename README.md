@@ -1,5 +1,5 @@
 # MacOSLibrary
-ui library that looks like apple's macos and ipados.
+ui library that looks like apple's macos and ipados. 
 
 ## what you need
 you need an executor with `gethui()` or `syn.protect_gui`. tested on potassium and delta.
@@ -43,12 +43,13 @@ Window:Notify2(titleText: string, paragraphText: string, button1Text: string, bu
 ```lua
 Window:Divider(text: string)
 ```
-- section/tab: holds your elements. returns a table.
+- section/tab: holds your elements. returns a section table.
   you can pass a second arg for the icon. The library now integrates all **1,747 official Lucide icons** dynamically!
   You can use any Lucide icon name.
   Check out [lucide.dev/icons](https://lucide.dev/icons) for the full list of supported names.
   
   If you want to use a custom image, you can still pass ANY direct Roblox asset ID as well!
+  
   ```lua
   local section = Window:Section(text: string, icon: string)
   -- Example using built-in Lucide:
@@ -57,50 +58,75 @@ Window:Divider(text: string)
   local sec2 = Window:Section("Custom", "rbxassetid://123456789")
   ```
 
-## elements
-- divider: splits elements.
+## groupboxes
+Groupboxes split your UI into left and right columns!
 ```lua
-Section:Divider(text: string)
+local LeftGroup = Section:AddLeftGroupbox(title: string)
+local RightGroup = Section:AddRightGroupbox(title: string)
+-- or legacy support:
+local Groupbox = Section:Groupbox(title: string)
+
+LeftGroup:AddToggle(name: string, default: boolean, callback: function)
+LeftGroup:AddButton(name: string, callback: function)
+LeftGroup:AddSlider(name: string, min: number, max: number, default: number, callback: function)
+LeftGroup:AddDropdown(name: string, options: table, default: string, callback: function)
 ```
+
+## tabboxes
+Tabboxes are like Groupboxes, but they have multiple tabs inside them! Great for organizing lots of toggles.
+```lua
+local Tabbox = Section:AddLeftTabbox()
+-- or
+local Tabbox = Section:AddRightTabbox()
+
+local CombatTab = Tabbox:AddTab("Combat")
+CombatTab:AddToggle("Aimbot", false, function(state) end)
+
+local VisualsTab = Tabbox:AddTab("Visuals")
+VisualsTab:AddToggle("ESP", true, function(state) end)
+```
+
+## elements
+Elements can be added to Sections, Groupboxes, or Tabbox Tabs!
 - label: just text for notes.
 ```lua
-Section:Label(text: string)
+Container:Label(text: string)
 ```
 - paragraph: bigger text block.
 ```lua
-Section:Paragraph(title: string, content: string)
+Container:Paragraph(title: string, content: string)
 ```
 - button: clicks and does stuff.
 ```lua
-Section:Button(text: string, callback: function)
+Container:Button(text: string, callback: function)
 ```
-- switch: on/off toggle.
+- switch/toggle: on/off toggle.
 ```lua
-Section:Switch(text: string, callback: function)
+Container:Switch(text: string, default: boolean, callback: function)
 ```
 - text field: type stuff in.
 ```lua
-Section:TextField(text: string, placeholderText: string, callback: function)
+Container:TextField(text: string, placeholderText: string, callback: function)
 ```
 - slider: slide to pick a number.
 ```lua
-Section:Slider(text: string, min: number, max: number, default: number, callback: function)
+Container:Slider(text: string, min: number, max: number, default: number, callback: function)
 ```
 - dropdown: pick one thing from a list.
 ```lua
-Section:Dropdown(text: string, options: table, default: string, callback: function)
+Container:Dropdown(text: string, options: table, default: string, callback: function)
 ```
 - multi dropdown: pick lots of things from a list.
 ```lua
-Section:MultiDropdown(text: string, options: table, defaultOptions: table, callback: function)
+Container:MultiDropdown(text: string, options: table, defaultOptions: table, callback: function)
 ```
 - colorpicker: pick a color.
 ```lua
-Section:ColorPicker(text: string, default: Color3, callback: function)
+Container:ColorPicker(text: string, default: Color3, callback: function)
 ```
 - keybind: press a key to set it.
 ```lua
-Section:Keybind(text: string, default: KeyCode, callback: function)
+Container:Keybind(text: string, default: KeyCode, callback: function)
 ```
 
 ## extra stuff
@@ -108,9 +134,9 @@ Section:Keybind(text: string, default: KeyCode, callback: function)
 ```lua
 Window:ToggleVisible()
 ```
-- extra mode: click the green button top left to swap to your settings/credits.
-- collapse: click the bottom left button to shrink the sidebar to just icons (exactly like obsidian).
-- custom cursor: uses obsidian style hand pointer when hovering over things. you can disable this in the settings tab.
+- dynamic resize: You can click and drag the gap between the sidebar and the main workarea to dynamically scale the UI, just like native macOS!
+- extra mode: click the green button top left to swap to the settings tab. 
+- collapse: click the bottom left button to shrink the sidebar to just icons.
 
 # images
 ![image](https://raw.githubusercontent.com/RedTree1222/MacOSLibrary/main/Assets/Screenshot%202026-07-18%20075132.png)

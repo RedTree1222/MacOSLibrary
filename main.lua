@@ -149,6 +149,7 @@ function ConfigManager:LoadUISettings()
             if Data.disableSplash ~= nil then self.DisableSplash = Data.disableSplash end
             if Data.accentR and Data.accentG and Data.accentB then self.AccentColor = Color3.new(Data.accentR, Data.accentG, Data.accentB) end
             if Data.rainbow ~= nil then self.Rainbow = Data.rainbow end
+            if Data.welcomeShown ~= nil then self.WelcomeShown = Data.welcomeShown end
             if Data.Settings then
                 for Flag, val in pairs(Data.Settings) do
                     if self.Elements[Flag] then
@@ -322,7 +323,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     KeybindsWindowFrame.Visible = false
     RegisterTheme(KeybindsWindowFrame, "BackgroundColor3", Color3.fromRGB(249, 249, 255), Color3.fromRGB(18, 18, 24))
     local KbBlurFrame = Instance.new("Frame")
-    KbBlurFrame.Name = "BlurFrame"
+    KbBlurFrame.Name = "blurFrame"
     KbBlurFrame.Parent = KeybindsWindowFrame
     KbBlurFrame.BackgroundTransparency = 1
     KbBlurFrame.Position = UDim2.new(0, 24, 0, 24)
@@ -389,7 +390,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     Main.Name = "main"
     Main.Parent = scrgui
     local BlurFrame = Instance.new("Frame")
-    BlurFrame.Name = "BlurFrame"
+    BlurFrame.Name = "blurFrame"
     BlurFrame.Parent = Main
     BlurFrame.BackgroundTransparency = 1
     BlurFrame.Position = UDim2.new(0, 24, 0, 24)
@@ -521,6 +522,34 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         CurrentY = CurrentY + (TargetY - CurrentY) * (1 - math.exp(-FollowSpeed * dt))
         Main.Position = UDim2.new(0.5, CurrentX, 0.5, CurrentY)
     end)
+    
+    local SidebarResizer = Instance.new("TextButton")
+    SidebarResizer.Name = "SidebarResizer"
+    SidebarResizer.Parent = Main
+    SidebarResizer.BackgroundTransparency = 1
+    SidebarResizer.Text = ""
+    SidebarResizer.Position = UDim2.new(0, 18 + ExpandedSidebarWidth - 4, 0, 106)
+    SidebarResizer.Size = UDim2.new(0, 12, 1, -124)
+    SidebarResizer.ZIndex = 50
+    
+    local SidebarResizing = false
+    local SidebarStartX = 0
+    local SidebarStartWidth = ExpandedSidebarWidth
+    
+    SidebarResizer.InputBegan:Connect(function(input)
+        if not IsSidebarCollapsed and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+            SidebarResizing = true
+            SidebarStartX = input.Position.X
+            SidebarStartWidth = ExpandedSidebarWidth
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            SidebarResizing = false
+        end
+    end)
+    
     local Workarea = Instance.new("Frame")
     Workarea.Name = "workarea"
     Workarea.Parent = Main
@@ -668,8 +697,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     Searchicon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Searchicon.BackgroundTransparency = 1
     Searchicon.BorderColor3 = Color3.fromRGB(27, 42, 53)
-    Searchicon.Position = UDim2.new(0.0379999988, -2, 0.138999999, 2)
-    Searchicon.Size = UDim2.new(0, 24, 0, 21)
+    Searchicon.AnchorPoint = Vector2.new(0.5, 0.5)
+    Searchicon.Position = UDim2.new(0, 16, 0.5, 0)
+    Searchicon.Size = UDim2.new(0, 20, 0, 20)
     Searchicon.Image = "rbxassetid://2804603863"
     Searchicon.ImageColor3 = Color3.fromRGB(95, 95, 95)
     Searchicon.ScaleType = Enum.ScaleType.Fit
@@ -679,8 +709,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     Searchtextbox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Searchtextbox.BackgroundTransparency = 1
     Searchtextbox.ClipsDescendants = true
-    Searchtextbox.Position = UDim2.new(0.180257514, 0, 0, 0)
-    Searchtextbox.Size = UDim2.new(0, 176, 0, 34)
+    Searchtextbox.Position = UDim2.new(0, 34, 0, 0)
+    Searchtextbox.Size = UDim2.new(1, -34, 1, 0)
     Searchtextbox.Font = Enum.Font.BuilderSansMedium
     Searchtextbox.LineHeight = 1
       Searchtextbox.TextYAlignment = Enum.TextYAlignment.Center
@@ -702,33 +732,22 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     Sidebar.Size = UDim2.new(0, ExpandedSidebarWidth, 1, -124)
     Sidebar.AutomaticCanvasSize = "Y"
     Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
-    local SidebarResizer = Instance.new("TextButton")
-    SidebarResizer.Name = "sidebarResizer"
-    SidebarResizer.Parent = Main
-    SidebarResizer.Size = UDim2.new(0, 8, 1, -124)
-    SidebarResizer.Position = UDim2.new(0, 18 + ExpandedSidebarWidth - 4, 0, 106)
-    SidebarResizer.BackgroundTransparency = 1
-    SidebarResizer.Text = ""
-    SidebarResizer.ZIndex = 30
-    local SidebarResizing = false
-    local SidebarStartX = 0
-    local SidebarStartWidth = 0
-    SidebarResizer.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            SidebarResizing = true
-            SidebarStartX = input.Position.X
-            SidebarStartWidth = ExpandedSidebarWidth
-            local c; c = input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    SidebarResizing = false
-                    c:Disconnect()
-                end
-            end)
-        end
-    end)
     Sidebar.ScrollBarThickness = 0
+    
+    local SidebarList = Instance.new("Frame")
+    SidebarList.Name = "sidebarList"
+    SidebarList.Parent = Sidebar
+    SidebarList.BackgroundTransparency = 1
+    SidebarList.Size = UDim2.new(1, 0, 1, 0)
+    SidebarList.ZIndex = 20
+    
     local Ull_2 = Instance.new("UIListLayout")
-    Ull_2.Parent = Sidebar
+    Ull_2.Parent = SidebarList
+    Ull_2.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    local SidebarListPadding = Instance.new("UIPadding", SidebarList)
+    SidebarListPadding.PaddingLeft = UDim.new(0, 3.5)
+    Ull_2.SortOrder = Enum.SortOrder.LayoutOrder
+    Ull_2.Padding = UDim.new(0, 3)
     Ull_2.SortOrder = Enum.SortOrder.LayoutOrder
     Ull_2.Padding = UDim.new(0, 3)
     Searchtextbox:GetPropertyChangedSignal("Text"):Connect(function()
@@ -789,16 +808,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         end
         if ActiveTab and Highlight then
             local Connection
-            Connection = RunService.RenderStepped:Connect(function()
-                if ActiveTab and Highlight then
-                    Highlight.Position = UDim2.new(0, ActiveTab.AbsolutePosition.X - Main.AbsolutePosition.X, 0, ActiveTab.AbsolutePosition.Y - Main.AbsolutePosition.Y)
-                else
-                    if Connection then Connection:Disconnect() end
-                end
-            end)
-            task.delay(0.2, function()
-                if Connection then Connection:Disconnect() end
-            end)
+
         end
     end)
     local Buttons = Instance.new("Frame")
@@ -940,7 +950,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     end
                 else
                     local Btn = t.TabButton
-                    Btn.Size = UDim2.new(0, 0, 0, 34)
+                    local CurrentTargetWidth = IsSidebarCollapsed and 34 or 183
+                    Btn.Size = UDim2.new(0, CurrentTargetWidth, 0, 34)
                     Btn.TextTransparency = 1
                     Btn.BackgroundTransparency = 1
                     Btn.Visible = true
@@ -952,7 +963,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     end
                     if not FirstSection then FirstSection = t end
                     local BgTrans = (Btn.Name == "sidebar2_selected") and 1 or 0.93
-                    local CurrentTargetWidth = IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7)
+                    local CurrentTargetWidth = IsSidebarCollapsed and 34 or 183
                     TweenService:Create(Btn, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
                         Size = UDim2.new(0, CurrentTargetWidth, 0, 34),
                         TextTransparency = TxtTrans,
@@ -966,34 +977,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     end
                 end
             end
-            if FirstSection then
-                FirstSection:Select()
-                if Highlight then
-                    TweenService:Create(Highlight, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                        BackgroundTransparency = 0
-                    }):Play()
-                    local ActiveTab = nil
-                    for _, s in ipairs(Sections) do
-                        if s.TextColor3 == Color3.fromRGB(255, 255, 255) then
-                            ActiveTab = s
-                            break
-                        end
-                    end
-                    if ActiveTab then
-                        local Connection
-                        Connection = RunService.RenderStepped:Connect(function()
-                            if ActiveTab and Highlight then
-                                Highlight.Position = UDim2.new(0, ActiveTab.AbsolutePosition.X - Main.AbsolutePosition.X, 0, ActiveTab.AbsolutePosition.Y - Main.AbsolutePosition.Y)
-                            else
-                                if Connection then Connection:Disconnect() end
-                            end
-                        end)
-                        task.delay(0.3, function()
-                            if Connection then Connection:Disconnect() end
-                        end)
-                    end
-                end
-            end
+            if FirstSection and type(FirstSection.Select) == "function" then
+        task.spawn(function()
+            RunService.RenderStepped:Wait()
+            FirstSection:Select(true)
+        end)
+    end
             task.delay(0.3, function()
                 TabSwapCooldown = false
             end)
@@ -1064,27 +1053,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     UserInputService.InputChanged:Connect(function(input)
         if SidebarResizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local DeltaX = input.Position.X - SidebarStartX
-            ExpandedSidebarWidth = math.clamp(SidebarStartWidth + DeltaX, 150, 400)
+            ExpandedSidebarWidth = math.clamp(SidebarStartWidth + DeltaX, 75, 400)
             if not IsSidebarCollapsed then
                 Sidebar.Size = UDim2.new(0, ExpandedSidebarWidth, 1, -124)
                 SidebarResizer.Position = UDim2.new(0, 18 + ExpandedSidebarWidth - 4, 0, 106)
                 Workarea.Position = UDim2.new(0, ExpandedSidebarWidth + 30, 0, 0)
                 Workarea.Size = UDim2.new(1, -(ExpandedSidebarWidth + 30), 1, 0)
-                for b, v in next, Sections do
-                    v.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34)
-                end
-                for _, t in ipairs(MainTabs) do
-                    if t.IsDivider then t.Label.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 20) else
-                        t.TabButton.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34)
-                    end
-                end
-                for _, t in ipairs(ExtraTabs) do
-                    if t.IsDivider then t.Label.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 20) else
-                        t.TabButton.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34)
-                    end
-                end
-                local Highlight = Sidebar:FindFirstChild("TabHighlight")
-                if Highlight then Highlight.Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34) end
                 local CurrentSearch = Main:FindFirstChild("search")
                 if CurrentSearch then CurrentSearch.Size = UDim2.new(0, ExpandedSidebarWidth - 8, 0, 34) end
             end
@@ -1228,6 +1202,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     RegisterTheme(Notiftext, "TextColor3", Color3.fromRGB(95, 95, 95), Color3.fromRGB(200, 200, 200))
     Notiftext.TextSize = 16
     Notiftext.TextWrapped = true
+    Notiftext.TextScaled = true
     local Notif2 = Instance.new("Frame")
     Notif2.Name = "notif2"
     Notif2.Parent = Main
@@ -1422,43 +1397,40 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     local NotifBaseY = IsMob and 0.15 or 0.08
     local NotifSpacing = IsMob and 85 or 105
     function Window:TempNotify(text1, text2, icon)
-        for b,v in next, scrgui:GetChildren() do
-            if v.Name == "tempnotif" then 
-                v.Position = v.Position + UDim2.new(0,0,0,130)
-            end
+        local TempNotifContainer = scrgui:FindFirstChild("TempNotifContainer")
+        if not TempNotifContainer then
+            TempNotifContainer = Instance.new("Frame")
+            TempNotifContainer.Name = "TempNotifContainer"
+            TempNotifContainer.Parent = scrgui
+            TempNotifContainer.BackgroundTransparency = 1
+            TempNotifContainer.Position = UDim2.new(1, -20, 0, 30)
+            TempNotifContainer.Size = UDim2.new(0, 450, 1, -60)
+            TempNotifContainer.AnchorPoint = Vector2.new(1, 0)
+            TempNotifContainer.ZIndex = 1000
+            TempNotifContainer.ClipsDescendants = false
+            
+            local UIList = Instance.new("UIListLayout")
+            UIList.Parent = TempNotifContainer
+            UIList.SortOrder = Enum.SortOrder.LayoutOrder
+            UIList.HorizontalAlignment = Enum.HorizontalAlignment.Right
+            UIList.VerticalAlignment = Enum.VerticalAlignment.Top
+            UIList.Padding = UDim.new(0, 10)
         end
+        
         local Tempnotif = Instance.new("Frame")
         Tempnotif.Name = "tempnotif"
-        Tempnotif.Parent = scrgui
-        Tempnotif.AnchorPoint = Vector2.new(0.5, 0.5)
+        Tempnotif.Parent = TempNotifContainer
+        Tempnotif.AnchorPoint = Vector2.new(0, 0)
         RegisterTheme(Tempnotif, "BackgroundColor3", Color3.fromRGB(255, 255, 255), Color3.fromRGB(40, 40, 40))
         Tempnotif.BackgroundTransparency = 1
-        Tempnotif.Position = UDim2.new(1, -250, 0, -150)
         Tempnotif.Size = UDim2.new(0, 447, 0, 117)
         Tempnotif.Visible = true
-        Tempnotif.ZIndex = 101
-        TweenService:Create(Tempnotif, TweenInfo.new(0.6, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
-            Position = UDim2.new(1, -250, 0.0794737339, 0),
-            BackgroundTransparency = 0.150
-        }):Play()
+        Tempnotif.ZIndex = 1001
+        
         local Uc_21 = Instance.new("UICorner")
         Uc_21.CornerRadius = UDim.new(0, 18)
         Uc_21.Parent = Tempnotif
-        local T2 = Instance.new("TextLabel")
-        T2.Name = "t2"
-        T2.Parent = Tempnotif
-        T2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        T2.BackgroundTransparency = 1
-        T2.Position = UDim2.new(0.236927822, 0, 0.470085472, 0)
-        T2.Size = UDim2.new(0, 326, 0, 52)
-        T2.ZIndex = 102
-        T2.Font = Enum.Font.BuilderSans
-        T2.Text = text2
-        RegisterTheme(T2, "TextColor3", Color3.fromRGB(95, 95, 95), Color3.fromRGB(200, 200, 200))
-        T2.TextSize = 16
-        T2.TextWrapped = true
-        T2.TextXAlignment = Enum.TextXAlignment.Left
-        T2.TextYAlignment = Enum.TextYAlignment.Top
+        
         local T1 = Instance.new("TextLabel")
         T1.Name = "t1"
         T1.Parent = Tempnotif
@@ -1466,12 +1438,31 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         T1.BackgroundTransparency = 1
         T1.Position = UDim2.new(0.234690696, 0, 0.193464488, 0)
         T1.Size = UDim2.new(0, 327, 0, 25)
-        T1.ZIndex = 102
+        T1.ZIndex = 1002
         T1.Font = Enum.Font.BuilderSansMedium
         T1.Text = text1
+        T1.TextTransparency = 1
         RegisterTheme(T1, "TextColor3", Color3.fromRGB(95, 95, 95), Color3.fromRGB(200, 200, 200))
         T1.TextSize = 28
         T1.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local T2 = Instance.new("TextLabel")
+        T2.Name = "t2"
+        T2.Parent = Tempnotif
+        T2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        T2.BackgroundTransparency = 1
+        T2.Position = UDim2.new(0.236927822, 0, 0.470085472, 0)
+        T2.Size = UDim2.new(0, 326, 0, 52)
+        T2.ZIndex = 1002
+        T2.Font = Enum.Font.BuilderSans
+        T2.Text = text2
+        T2.TextTransparency = 1
+        RegisterTheme(T2, "TextColor3", Color3.fromRGB(95, 95, 95), Color3.fromRGB(200, 200, 200))
+        T2.TextSize = 16
+        T2.TextWrapped = true
+        T2.TextXAlignment = Enum.TextXAlignment.Left
+        T2.TextYAlignment = Enum.TextYAlignment.Top
+        
         local Ticon = Instance.new("ImageLabel")
         Ticon.Name = "ticon"
         Ticon.Parent = Tempnotif
@@ -1479,29 +1470,54 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Ticon.BackgroundTransparency = 1
         Ticon.Position = UDim2.new(0.0311112702, 0, 0.193464488, 0)
         Ticon.Size = UDim2.new(0, 71, 0, 71)
-        Ticon.ZIndex = 102
+        Ticon.ZIndex = 1002
+        Ticon.ImageTransparency = 1
         ResolveIcon(Ticon, icon)
         RegisterTheme(Ticon, "ImageColor3", Color3.fromRGB(95, 95, 95), Color3.fromRGB(200, 200, 200))
         Ticon.ScaleType = Enum.ScaleType.Fit
+        
         local Tshadow = Instance.new("ImageLabel")
         Tshadow.Name = "tshadow"
         Tshadow.Parent = Tempnotif
         Tshadow.AnchorPoint = Vector2.new(0.5, 0.5)
         Tshadow.BackgroundTransparency = 1
         Tshadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-        Tshadow.Size = UDim2.new(1.12, 0, 1.20000005, 0)
-        Tshadow.ZIndex = 100
+        Tshadow.Size = UDim2.new(1.12, 0, 1.2, 0)
+        Tshadow.ZIndex = 1000
         Tshadow.Image = "rbxassetid://313486536"
         Tshadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-        Tshadow.ImageTransparency = 0.400
+        Tshadow.ImageTransparency = 1
         Tshadow.TileSize = UDim2.new(0, 1, 0, 1)
-        Tempnotif.Position = UDim2.new(1, -250, 0.0794737339, 0)
+        
+        TweenService:Create(Tempnotif, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.150
+        }):Play()
+        TweenService:Create(T1, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TextTransparency = 0
+        }):Play()
+        TweenService:Create(T2, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TextTransparency = 0
+        }):Play()
+        TweenService:Create(Ticon, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            ImageTransparency = 0
+        }):Play()
+        TweenService:Create(Tshadow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            ImageTransparency = 0.400
+        }):Play()
+        
         task.delay(4.5, function()
             if Tempnotif and Tempnotif.Parent then
-                TweenService:Create(Tempnotif, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.In), {
-                    Position = UDim2.new(1, 250, Tempnotif.Position.Y.Scale, Tempnotif.Position.Y.Offset)
-                }):Play()
-                game:GetService("Debris"):AddItem(Tempnotif, 0.5)
+                local TwOut = TweenService:Create(Tempnotif, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                    BackgroundTransparency = 1
+                })
+                TweenService:Create(T1, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { TextTransparency = 1 }):Play()
+                TweenService:Create(T2, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { TextTransparency = 1 }):Play()
+                TweenService:Create(Ticon, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { ImageTransparency = 1 }):Play()
+                TweenService:Create(Tshadow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { ImageTransparency = 1 }):Play()
+                TwOut:Play()
+                TwOut.Completed:Connect(function()
+                    Tempnotif:Destroy()
+                end)
             end
         end)
     end
@@ -1588,10 +1604,10 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             end)
         end)
     end
-    function Window:Divider(name, isExtra)
+    function Window:Divider(name, _internalExtra)
         local Sidebardivider = Instance.new("TextLabel")
         Sidebardivider.Name = "sidebardivider"
-        Sidebardivider.Parent = Sidebar
+        Sidebardivider.Parent = SidebarList
         Sidebardivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         Sidebardivider.BackgroundTransparency = 1
         Sidebardivider.BorderSizePixel = 2
@@ -1613,18 +1629,18 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Line.BackgroundTransparency = 1
         Line.BorderSizePixel = 0
         RegisterTheme(Line, "BackgroundColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(100, 100, 120))
-        if isExtra then
+        if _internalExtra then
             table.insert(ExtraTabs, {IsDivider = true, Label = Sidebardivider})
             Sidebardivider.Visible = false
         else
             table.insert(MainTabs, {IsDivider = true, Label = Sidebardivider})
         end
     end
-    function Window:Section(name, iconId, isExtra)
+    function Window:Section(name, iconId, _internalExtra)
         local Sidebar2 = Instance.new("TextButton")
         Sidebar2.ClipsDescendants = true
         Sidebar2.Name = "sidebar2"
-        Sidebar2.Parent = Sidebar
+        Sidebar2.Parent = SidebarList
         local BgL = Color3.fromRGB(0, 0, 0)
         local BgD = Color3.fromRGB(255, 255, 255)
         local TxtL = Color3.fromRGB(100, 100, 100)
@@ -1638,11 +1654,11 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Sidebar2.Text = name
         Sidebar2.TextColor3 = (CurrentTheme == "light") and TxtL or TxtD
         Sidebar2.TextSize = 15
+        Sidebar2.TextXAlignment = Enum.TextXAlignment.Left
+        local Uipadding = Instance.new("UIPadding")
+        Uipadding.PaddingLeft = UDim.new(0, iconId and 40 or 15)
+        Uipadding.Parent = Sidebar2
         if iconId then
-            Sidebar2.TextXAlignment = Enum.TextXAlignment.Left
-            local Uipadding = Instance.new("UIPadding")
-            Uipadding.PaddingLeft = UDim.new(0, 40)
-            Uipadding.Parent = Sidebar2
             local IconImg = Instance.new("ImageLabel")
             IconImg.Name = "iconImg"
             IconImg.Size = UDim2.new(0, 18, 0, 18)
@@ -1688,37 +1704,42 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Sec.SearchableText = {}
         Sec.ElementsList = {}
         Sec.TabButton = Sidebar2
-        function Sec:Select()
-            if Workareamain.Visible then return end
+        function Sec:Select(force)
+            if Workareamain.Visible and Sidebar2.Name == "sidebar2_selected" and not force then return end
+            
+            local BgL = Color3.fromRGB(0, 0, 0)
+            local BgD = Color3.fromRGB(255, 255, 255)
+            local TxtL = Color3.fromRGB(100, 100, 100)
+            local TxtD = Color3.fromRGB(140, 140, 155)
+            
             for b, v in next, Sections do
+                v.Name = "sidebar2"
                 v.BackgroundColor3 = (CurrentTheme == "light") and BgL or BgD
                 v.BackgroundTransparency = 0.93
                 v.TextColor3 = (CurrentTheme == "light") and TxtL or TxtD
-                v.Name = "sidebar2"
                 local Ico = v:FindFirstChild("iconImg")
                 if Ico then
                     Ico.ImageColor3 = (CurrentTheme == "light") and TxtL or TxtD
                 end
             end
+            
+            Sidebar2.Name = "sidebar2_selected"
             Sidebar2.BackgroundTransparency = 1
             Sidebar2.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Sidebar2.Name = "sidebar2_selected"
             local MyIco = Sidebar2:FindFirstChild("iconImg")
             if MyIco then
                 MyIco.ImageColor3 = Color3.fromRGB(255, 255, 255)
             end
-            local IsNewHighlight = false
+            
             local Highlight = Sidebar:FindFirstChild("TabHighlight")
-            if Highlight then Highlight.Visible = true end
+            local IsNew = false
             if not Highlight then
-                IsNewHighlight = true
+                IsNew = true
                 Highlight = Instance.new("Frame")
                 Highlight.Name = "TabHighlight"
                 Highlight.Parent = Sidebar
                 Highlight.BackgroundColor3 = CurrentAccentColor
-                local CurrentHighlightWidth = IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7)
-                Highlight.Size = UDim2.new(0, CurrentHighlightWidth, 0, 34)
-                Highlight.ZIndex = 1
+                Highlight.ZIndex = 16
                 local Uc = Instance.new("UICorner", Highlight)
                 Uc.CornerRadius = UDim.new(0, 9)
                 table.insert(ThemeElements, {
@@ -1727,20 +1748,31 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     Light = CurrentAccentColor,
                     Dark = CurrentAccentColor
                 })
-                
             end
+            
+            Highlight.Visible = true
+            local CurrentTargetWidth = IsSidebarCollapsed and 34 or 183
+            local TargetX = 3.5
+            local TargetW = CurrentTargetWidth
+            local TargetH = 34
             local TargetY = Sidebar2.AbsolutePosition.Y - Sidebar.AbsolutePosition.Y + Sidebar.CanvasPosition.Y
-            local TargetX = Sidebar2.AbsolutePosition.X - Sidebar.AbsolutePosition.X
-            local CurrentHighlightWidth = IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7)
-            if IsNewHighlight then
+            
+            if shared.HighlightConnection then shared.HighlightConnection:Disconnect() end
+            
+            if IsNew or Highlight.BackgroundTransparency == 1 or (Highlight.Position.Y.Offset == 0 and Highlight.Position.X.Offset == 0) then
                 Highlight.Position = UDim2.new(0, TargetX, 0, TargetY)
-                Highlight.Size = UDim2.new(0, CurrentHighlightWidth, 0, 34)
+                Highlight.Size = UDim2.new(0, TargetW, 0, TargetH)
+                TweenService:Create(Highlight, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundTransparency = 0
+                }):Play()
             else
-                TweenService:Create(Highlight, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                TweenService:Create(Highlight, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Position = UDim2.new(0, TargetX, 0, TargetY),
-                    Size = UDim2.new(0, CurrentHighlightWidth, 0, 34)
+                    Size = UDim2.new(0, TargetW, 0, TargetH),
+                    BackgroundTransparency = 0
                 }):Play()
             end
+            
             for b, v in next, Workareas do
                 if v ~= Workareamain then
                     v.Visible = false
@@ -1752,13 +1784,434 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 Position = UDim2.new(0, 0, 0, 56)
             }):Play()
         end
+
+
         function Sec:GetContainer()
             return Workareamain
         end
-        function Sec:Divider(name)
+        function Sec:Groupbox(title, side)
+            local function GetColumnsFrame()
+                local ColumnsFrame = Workareamain:FindFirstChild("ColumnsFrame")
+                if not ColumnsFrame then
+                    ColumnsFrame = Instance.new("Frame")
+                    ColumnsFrame.Name = "ColumnsFrame"
+                    ColumnsFrame.Parent = Workareamain
+                    ColumnsFrame.BackgroundTransparency = 1
+                    ColumnsFrame.Size = UDim2.new(1, 0, 0, 0)
+                    ColumnsFrame.AutomaticSize = Enum.AutomaticSize.Y
+                    ColumnsFrame.ZIndex = 4
+                    
+                    local LeftCol = Instance.new("Frame")
+                    LeftCol.Name = "LeftColumn"
+                    LeftCol.Parent = ColumnsFrame
+                    LeftCol.BackgroundTransparency = 1
+                    LeftCol.Position = UDim2.new(0, 0, 0, 0)
+                    LeftCol.Size = UDim2.new(0.5, -4, 0, 0)
+                    LeftCol.AutomaticSize = Enum.AutomaticSize.Y
+                    LeftCol.ZIndex = 4
+                    
+                    local LeftList = Instance.new("UIListLayout")
+                    LeftList.Parent = LeftCol
+                    LeftList.SortOrder = Enum.SortOrder.LayoutOrder
+                    LeftList.Padding = UDim.new(0, 8)
+                    
+                    local RightCol = Instance.new("Frame")
+                    RightCol.Name = "RightColumn"
+                    RightCol.Parent = ColumnsFrame
+                    RightCol.BackgroundTransparency = 1
+                    RightCol.Position = UDim2.new(0.5, 4, 0, 0)
+                    RightCol.Size = UDim2.new(0.5, -4, 0, 0)
+                    RightCol.AutomaticSize = Enum.AutomaticSize.Y
+                    RightCol.ZIndex = 4
+                    
+                    local RightList = Instance.new("UIListLayout")
+                    RightList.Parent = RightCol
+                    RightList.SortOrder = Enum.SortOrder.LayoutOrder
+                    RightList.Padding = UDim.new(0, 8)
+                end
+                return ColumnsFrame
+            end
+
+            local TargetColumn
+            local TargetColName = "LeftColumn"
+            if side == "left" then
+                TargetColName = "LeftColumn"
+            elseif side == "right" then
+                TargetColName = "RightColumn"
+            else
+                if Sec.LastSide == "left" then
+                    Sec.LastSide = "right"
+                    TargetColName = "RightColumn"
+                else
+                    Sec.LastSide = "left"
+                    TargetColName = "LeftColumn"
+                end
+            end
+            TargetColumn = GetColumnsFrame():FindFirstChild(TargetColName)
+
+            local GroupFrame = Instance.new("Frame")
+            GroupFrame.Name = "groupbox"
+            GroupFrame.Parent = TargetColumn
+            GroupFrame.Size = UDim2.new(1, 0, 0, 36)
+            GroupFrame.AutomaticSize = Enum.AutomaticSize.Y
+            GroupFrame.BackgroundTransparency = 0.4
+            GroupFrame.BorderSizePixel = 0
+            GroupFrame.ClipsDescendants = true
+            
+            RegisterTheme(GroupFrame, "BackgroundColor3", Color3.fromRGB(235, 235, 242), Color3.fromRGB(32, 32, 40))
+            
+            local UcGroup = Instance.new("UICorner")
+            UcGroup.CornerRadius = UDim.new(0, 10)
+            UcGroup.Parent = GroupFrame
+            
+            local GroupStroke = Instance.new("UIStroke")
+            GroupStroke.Parent = GroupFrame
+            GroupStroke.Thickness = 1
+            GroupStroke.Transparency = 0.6
+            RegisterTheme(GroupStroke, "Color", Color3.fromRGB(200, 200, 215), Color3.fromRGB(50, 50, 65))
+            
+            local HeaderBar = Instance.new("Frame")
+            HeaderBar.Name = "headerBar"
+            HeaderBar.Parent = GroupFrame
+            HeaderBar.Size = UDim2.new(1, 0, 0, 36)
+            HeaderBar.BackgroundTransparency = 1
+            
+            local HeaderTitle = Instance.new("TextLabel")
+            HeaderTitle.Name = "headerTitle"
+            HeaderTitle.Parent = HeaderBar
+            HeaderTitle.Position = UDim2.new(0, 12, 0, 0)
+            HeaderTitle.Size = UDim2.new(1, -50, 1, 0)
+            HeaderTitle.BackgroundTransparency = 1
+            HeaderTitle.Font = Enum.Font.BuilderSansBold
+            HeaderTitle.Text = title or "Groupbox"
+            HeaderTitle.TextSize = 13
+            HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+            RegisterTheme(HeaderTitle, "TextColor3", Color3.fromRGB(60, 60, 65), Color3.fromRGB(220, 220, 230))
+            
+            local ToggleBtn = Instance.new("ImageButton")
+            ToggleBtn.Name = "toggleBtn"
+            ToggleBtn.Parent = HeaderBar
+            ToggleBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+            ToggleBtn.Position = UDim2.new(1, -16, 0.5, 0)
+            ToggleBtn.Size = UDim2.new(0, 16, 0, 16)
+            ToggleBtn.BackgroundTransparency = 1
+            ResolveIcon(ToggleBtn, "chevron-down")
+            RegisterTheme(ToggleBtn, "ImageColor3", Color3.fromRGB(120, 120, 130), Color3.fromRGB(180, 180, 190))
+            
+            local ContentFrame = Instance.new("Frame")
+            ContentFrame.Name = "contentFrame"
+            ContentFrame.Parent = GroupFrame
+            ContentFrame.Position = UDim2.new(0, 6, 0, 36)
+            ContentFrame.Size = UDim2.new(1, -12, 0, 0)
+            ContentFrame.AutomaticSize = Enum.AutomaticSize.Y
+            ContentFrame.BackgroundTransparency = 1
+            
+            local ContentPadding = Instance.new("UIPadding")
+            ContentPadding.Parent = ContentFrame
+            ContentPadding.PaddingBottom = UDim.new(0, 8)
+            
+            local ContentLayout = Instance.new("UIListLayout")
+            ContentLayout.Parent = ContentFrame
+            ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            ContentLayout.Padding = UDim.new(0, 6)
+            
+            local IsCollapsed = false
+            local function ToggleCollapse()
+                IsCollapsed = not IsCollapsed
+                if IsCollapsed then
+                    GroupFrame.Size = UDim2.new(1, 0, 0, GroupFrame.AbsoluteSize.Y)
+                    GroupFrame.AutomaticSize = Enum.AutomaticSize.None
+                    TweenService:Create(GroupFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Size = UDim2.new(1, 0, 0, 36)
+                    }):Play()
+                    TweenService:Create(ToggleBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Rotation = -90
+                    }):Play()
+                else
+                    local targetHeight = ContentLayout.AbsoluteContentSize.Y + ContentPadding.PaddingBottom.Offset + 36
+                    local expandTween = TweenService:Create(GroupFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Size = UDim2.new(1, 0, 0, targetHeight)
+                    })
+                    expandTween:Play()
+                    TweenService:Create(ToggleBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Rotation = 0
+                    }):Play()
+                    
+                    task.delay(0.25, function()
+                        if not IsCollapsed then
+                            GroupFrame.AutomaticSize = Enum.AutomaticSize.Y
+                        end
+                    end)
+                end
+            end
+            
+            ToggleBtn.MouseButton1Click:Connect(ToggleCollapse)
+            HeaderTitle.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    ToggleCollapse()
+                end
+            end)
+            
+            local GroupObj = {}
+            GroupObj.Frame = GroupFrame
+            
+            function GroupObj:AddToggle(name, default, callback, Flag) return Sec:Switch(name, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddButton(name, callback, isDestructive) return Sec:Button(name, callback, isDestructive, ContentFrame) end
+            function GroupObj:AddSlider(name, min, max, default, callback, Flag) return Sec:Slider(name, min, max, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddDropdown(name, options, default, callback, Flag) return Sec:Dropdown(name, options, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddMultiDropdown(name, options, defaultOptions, callback, Flag) return Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, ContentFrame) end
+            function GroupObj:AddColorPicker(name, default, callback, Flag) return Sec:ColorPicker(name, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddKeybind(name, default, callback, Flag) return Sec:Keybind(name, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddLabel(text) return Sec:Label(text, ContentFrame) end
+            function GroupObj:AddParagraph(title, content) return Sec:Paragraph(title, content, ContentFrame) end
+            function GroupObj:AddTextField(name, placeholder, callback, Flag) return Sec:TextField(name, placeholder, callback, Flag, ContentFrame) end
+            function GroupObj:AddDivider(text) return Sec:Divider(text, ContentFrame) end
+            
+            GroupObj.Switch = function(self, ...) return GroupObj:AddToggle(...) end
+            GroupObj.Button = function(self, ...) return GroupObj:AddButton(...) end
+            GroupObj.Slider = function(self, ...) return GroupObj:AddSlider(...) end
+            GroupObj.Dropdown = function(self, ...) return GroupObj:AddDropdown(...) end
+            GroupObj.MultiDropdown = function(self, ...) return GroupObj:AddMultiDropdown(...) end
+            GroupObj.ColorPicker = function(self, ...) return GroupObj:AddColorPicker(...) end
+            GroupObj.Keybind = function(self, ...) return GroupObj:AddKeybind(...) end
+            GroupObj.Label = function(self, ...) return GroupObj:AddLabel(...) end
+            GroupObj.Paragraph = function(self, ...) return GroupObj:AddParagraph(...) end
+            GroupObj.TextField = function(self, ...) return GroupObj:AddTextField(...) end
+            GroupObj.Divider = function(self, ...) return GroupObj:AddDivider(...) end
+            
+            return GroupObj
+        end
+        function Sec:AddLeftGroupbox(title) return Sec:Groupbox(title, "left") end
+        function Sec:AddRightGroupbox(title) return Sec:Groupbox(title, "right") end
+
+        
+        
+        function Sec:Tabbox(side)
+            local function GetColumnsFrame()
+                local ColumnsFrame = Workareamain:FindFirstChild("ColumnsFrame")
+                if not ColumnsFrame then
+                    ColumnsFrame = Instance.new("Frame")
+                    ColumnsFrame.Name = "ColumnsFrame"
+                    ColumnsFrame.Parent = Workareamain
+                    ColumnsFrame.BackgroundTransparency = 1
+                    ColumnsFrame.Size = UDim2.new(1, 0, 0, 0)
+                    ColumnsFrame.AutomaticSize = Enum.AutomaticSize.Y
+                    ColumnsFrame.ZIndex = 4
+                    
+                    local LeftCol = Instance.new("Frame")
+                    LeftCol.Name = "LeftColumn"
+                    LeftCol.Parent = ColumnsFrame
+                    LeftCol.BackgroundTransparency = 1
+                    LeftCol.Position = UDim2.new(0, 0, 0, 0)
+                    LeftCol.Size = UDim2.new(0.5, -4, 0, 0)
+                    LeftCol.AutomaticSize = Enum.AutomaticSize.Y
+                    LeftCol.ZIndex = 4
+                    
+                    local LeftList = Instance.new("UIListLayout")
+                    LeftList.Parent = LeftCol
+                    LeftList.SortOrder = Enum.SortOrder.LayoutOrder
+                    LeftList.Padding = UDim.new(0, 8)
+                    
+                    local RightCol = Instance.new("Frame")
+                    RightCol.Name = "RightColumn"
+                    RightCol.Parent = ColumnsFrame
+                    RightCol.BackgroundTransparency = 1
+                    RightCol.Position = UDim2.new(0.5, 4, 0, 0)
+                    RightCol.Size = UDim2.new(0.5, -4, 0, 0)
+                    RightCol.AutomaticSize = Enum.AutomaticSize.Y
+                    RightCol.ZIndex = 4
+                    
+                    local RightList = Instance.new("UIListLayout")
+                    RightList.Parent = RightCol
+                    RightList.SortOrder = Enum.SortOrder.LayoutOrder
+                    RightList.Padding = UDim.new(0, 8)
+                end
+                return ColumnsFrame
+            end
+
+            local TargetColumn
+            local TargetColName = "LeftColumn"
+            if side == "left" then TargetColName = "LeftColumn"
+            elseif side == "right" then TargetColName = "RightColumn"
+            else
+                if Sec.LastSide == "left" then Sec.LastSide = "right"; TargetColName = "RightColumn"
+                else Sec.LastSide = "left"; TargetColName = "LeftColumn" end
+            end
+            
+            TargetColumn = GetColumnsFrame():FindFirstChild(TargetColName)
+            
+            local TabboxFrame = Instance.new("Frame")
+            TabboxFrame.Name = "Tabbox"
+            TabboxFrame.Parent = TargetColumn
+            TabboxFrame.Size = UDim2.new(1, 0, 0, 36)
+            TabboxFrame.AutomaticSize = Enum.AutomaticSize.Y
+            TabboxFrame.BackgroundTransparency = 0.4
+            TabboxFrame.BorderSizePixel = 0
+            TabboxFrame.ClipsDescendants = true
+            RegisterTheme(TabboxFrame, "BackgroundColor3", Color3.fromRGB(235, 235, 242), Color3.fromRGB(32, 32, 40))
+            
+            local UcGroup = Instance.new("UICorner")
+            UcGroup.CornerRadius = UDim.new(0, 10)
+            UcGroup.Parent = TabboxFrame
+            
+            local GroupStroke = Instance.new("UIStroke")
+            GroupStroke.Parent = TabboxFrame
+            GroupStroke.Thickness = 1
+            GroupStroke.Transparency = 0.6
+            RegisterTheme(GroupStroke, "Color", Color3.fromRGB(200, 200, 215), Color3.fromRGB(50, 50, 65))
+            
+            local TopBar = Instance.new("Frame")
+            TopBar.Name = "TopBar"
+            TopBar.Parent = TabboxFrame
+            TopBar.BackgroundTransparency = 1
+            TopBar.Size = UDim2.new(1, 0, 0, 35)
+            
+            local TabList = Instance.new("UIListLayout")
+            TabList.Parent = TopBar
+            TabList.FillDirection = Enum.FillDirection.Horizontal
+            TabList.SortOrder = Enum.SortOrder.LayoutOrder
+            
+            local Divider = Instance.new("Frame")
+            Divider.Name = "Divider"
+            Divider.Parent = TabboxFrame
+            Divider.Position = UDim2.new(0, 0, 0, 35)
+            Divider.Size = UDim2.new(1, 0, 0, 1)
+            Divider.BorderSizePixel = 0
+            Divider.BackgroundTransparency = 0.6
+            RegisterTheme(Divider, "BackgroundColor3", Color3.fromRGB(200, 200, 215), Color3.fromRGB(50, 50, 65))
+            
+            local ContentArea = Instance.new("Frame")
+            ContentArea.Name = "contentArea"
+            ContentArea.Parent = TabboxFrame
+            ContentArea.BackgroundTransparency = 1
+            ContentArea.Position = UDim2.new(0, 6, 0, 36)
+            ContentArea.Size = UDim2.new(1, -12, 0, 0)
+            ContentArea.AutomaticSize = Enum.AutomaticSize.Y
+            
+            local ActiveLine = Instance.new("Frame")
+            ActiveLine.Name = "ActiveLine"
+            ActiveLine.Parent = TabboxFrame
+            ActiveLine.BackgroundColor3 = CurrentAccentColor or Color3.fromRGB(21, 103, 251)
+            ActiveLine.BorderSizePixel = 0
+            ActiveLine.Size = UDim2.new(0, 0, 0, 2)
+            ActiveLine.Position = UDim2.new(0, 0, 0, 34)
+            ActiveLine.ZIndex = 5
+            table.insert(ThemeElements, {Instance = ActiveLine, Property = "BackgroundColor3", Light = CurrentAccentColor, Dark = CurrentAccentColor})
+            
+            local TabboxObj = {}
+            TabboxObj.Tabs = {}
+            TabboxObj.ActiveTab = nil
+            
+            function TabboxObj:AddTab(name)
+                local TabBtn = Instance.new("TextButton")
+                TabBtn.Name = name
+                TabBtn.Parent = TopBar
+                TabBtn.BackgroundTransparency = 1
+                TabBtn.Size = UDim2.new(0, 0, 1, 0)
+                TabBtn.AutomaticSize = Enum.AutomaticSize.X
+                TabBtn.Font = Enum.Font.BuilderSansBold
+                TabBtn.Text = name
+                RegisterTheme(TabBtn, "TextColor3", Color3.fromRGB(60, 60, 65), Color3.fromRGB(220, 220, 230))
+                TabBtn.TextTransparency = 0.5
+                TabBtn.TextSize = 13
+                
+                local TabPadding = Instance.new("UIPadding")
+                TabPadding.PaddingLeft = UDim.new(0, 12)
+                TabPadding.PaddingRight = UDim.new(0, 12)
+                TabPadding.Parent = TabBtn
+                
+                local TabContent = Instance.new("Frame")
+                TabContent.Name = "contentFrame"
+                TabContent.Parent = ContentArea
+                TabContent.BackgroundTransparency = 1
+                TabContent.Size = UDim2.new(1, 0, 0, 0)
+                TabContent.AutomaticSize = Enum.AutomaticSize.Y
+                TabContent.Visible = false
+                
+                local ContentList = Instance.new("UIListLayout")
+                ContentList.Parent = TabContent
+                ContentList.SortOrder = Enum.SortOrder.LayoutOrder
+                
+                local ContentPadding = Instance.new("UIPadding")
+                ContentPadding.PaddingTop = UDim.new(0, 8)
+                ContentPadding.PaddingBottom = UDim.new(0, 8)
+                ContentPadding.Parent = TabContent
+                
+                local TabObj = {}
+                TabObj.Frame = TabContent
+                TabObj.Btn = TabBtn
+                function TabObj:AddToggle(n, d, c, f) return Sec:Switch(n, d, c, f, TabContent) end
+                function TabObj:Switch(n, d, c, f) return Sec:Switch(n, d, c, f, TabContent) end
+                function TabObj:AddSlider(n, min, max, d, c, f) return Sec:Slider(n, min, max, d, c, f, TabContent) end
+                function TabObj:Slider(n, min, max, d, c, f) return Sec:Slider(n, min, max, d, c, f, TabContent) end
+                function TabObj:AddDropdown(n, opt, d, c, f) return Sec:Dropdown(n, opt, d, c, f, TabContent) end
+                function TabObj:Dropdown(n, opt, d, c, f) return Sec:Dropdown(n, opt, d, c, f, TabContent) end
+                function TabObj:AddMultiDropdown(n, opt, d, c, f) return Sec:MultiDropdown(n, opt, d, c, f, TabContent) end
+                function TabObj:MultiDropdown(n, opt, d, c, f) return Sec:MultiDropdown(n, opt, d, c, f, TabContent) end
+                function TabObj:AddColorPicker(n, d, c, f) return Sec:ColorPicker(n, d, c, f, TabContent) end
+                function TabObj:ColorPicker(n, d, c, f) return Sec:ColorPicker(n, d, c, f, TabContent) end
+                function TabObj:AddKeybind(n, d, c, f) return Sec:Keybind(n, d, c, f, TabContent) end
+                function TabObj:Keybind(n, d, c, f) return Sec:Keybind(n, d, c, f, TabContent) end
+                function TabObj:AddTextField(n, p, c, f) return Sec:TextField(n, p, c, f, TabContent) end
+                function TabObj:TextField(n, p, c, f) return Sec:TextField(n, p, c, f, TabContent) end
+                function TabObj:AddButton(n, c) return Sec:Button(n, c, TabContent) end
+                function TabObj:Button(n, c) return Sec:Button(n, c, TabContent) end
+                function TabObj:AddLabel(n) return Sec:Label(n, TabContent) end
+                function TabObj:Label(n) return Sec:Label(n, TabContent) end
+                function TabObj:AddDivider(n) return Sec:Divider(n, TabContent) end
+                function TabObj:Divider(n) return Sec:Divider(n, TabContent) end
+                
+                TabBtn.MouseButton1Click:Connect(function()
+                    if TabboxObj.ActiveTab == TabObj then return end
+                    TabboxObj.ActiveTab = TabObj
+                    
+                    for _, t in pairs(TabboxObj.Tabs) do
+                        if t ~= TabObj then
+                            TweenService:Create(t.Btn, TweenInfo.new(0.3), {TextTransparency = 0.5}):Play()
+                            t.Frame.Visible = false
+                        end
+                    end
+                    
+                    TweenService:Create(TabBtn, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+                    TabContent.Visible = true
+                    
+                                        task.spawn(function()
+                        RunService.RenderStepped:Wait()
+                        TweenService:Create(ActiveLine, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                            Size = UDim2.new(0, TabBtn.AbsoluteSize.X, 0, 2),
+                            Position = UDim2.new(0, TabBtn.AbsolutePosition.X - TopBar.AbsolutePosition.X, 0, 34)
+                        }):Play()
+                    end)
+                end)
+                
+                table.insert(TabboxObj.Tabs, TabObj)
+                
+                if #TabboxObj.Tabs == 1 then
+                    TabboxObj.ActiveTab = TabObj
+                    TabBtn.TextTransparency = 0
+                    TabContent.Visible = true
+                    task.spawn(function()
+                        RunService.RenderStepped:Wait()
+                        ActiveLine.Size = UDim2.new(0, TabBtn.AbsoluteSize.X, 0, 2)
+                        ActiveLine.Position = UDim2.new(0, TabBtn.AbsolutePosition.X - TopBar.AbsolutePosition.X, 0, 34)
+                    end)
+                end
+                
+                return TabObj
+            end
+            
+            return TabboxObj
+        end
+function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
+        function Sec:AddRightTabbox() return Sec:Tabbox("right") end
+
+        Sec.LeftGroupbox = Sec.AddLeftGroupbox
+        Sec.RightGroupbox = Sec.AddRightGroupbox
+        Sec.AddGroupbox = Sec.Groupbox
+        function Sec:Divider(name, targetParent)
             local Section = Instance.new("TextLabel")
             Section.Name = "section"
-            Section.Parent = Workareamain
+            Section.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Section })
             Section.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Section.BackgroundTransparency = 1
@@ -1773,14 +2226,14 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Section.TextXAlignment = Enum.TextXAlignment.Left
             Section.TextYAlignment = Enum.TextYAlignment.Bottom
         end
-        function Sec:Button(name, callback, isDestructive)
+        function Sec:Button(name, callback, isDestructive, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             local Flag = name
             RegisteredElements[Flag] = callback
             local Button = Instance.new("TextButton")
             Button.Name = "button"
             Button.Text = name
-            Button.Parent = Workareamain
+            Button.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Button })
             Button.Size = UDim2.new(1, 0, 0, 37)
             Button.ZIndex = 20
@@ -1834,11 +2287,11 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 Window:PromptKeybind(callback, Flag)
             end)
         end
-        function Sec:Label(name)
+        function Sec:Label(name, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             local Label = Instance.new("TextLabel")
             Label.Name = "label"
-            Label.Parent = Workareamain
+            Label.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Label })
             Label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Label.BackgroundTransparency = 1
@@ -1850,14 +2303,14 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Label.TextWrapped = true
             Label.Text = name
         end
-        function Sec:Switch(name, defaultmode, callback, Flag)
+        function Sec:Switch(name, defaultmode, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Mode = (ConfigManager.Elements[Flag] ~= nil and ConfigManager.Elements[Flag].Value ~= nil) and ConfigManager.Elements[Flag].Value or defaultmode
             table.insert(CleanupToggles, { default = defaultmode, callback = callback })
             local Toggleswitch = Instance.new("Frame")
             Toggleswitch.Name = "toggleswitch"
-            Toggleswitch.Parent = Workareamain
+            Toggleswitch.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Toggleswitch })
             Toggleswitch.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Toggleswitch.BackgroundTransparency = 1
@@ -1939,12 +2392,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             RegisteredElements[Flag] = Toggle
             ConfigManager.Elements[Flag] = { Value = Mode, Set = function(self, val) if Mode ~= val then Toggle() end end }
         end
-        function Sec:TextField(name, placeholder, callback, Flag)
+        function Sec:TextField(name, placeholder, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Textfield = Instance.new("Frame")
             Textfield.Name = "textfield"
-            Textfield.Parent = Workareamain
+            Textfield.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Textfield })
             Textfield.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Textfield.BackgroundTransparency = 1
@@ -1954,7 +2407,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Textfieldlabel.Name = "textfieldlabel"
             Textfieldlabel.Parent = Textfield
             Textfieldlabel.BackgroundTransparency = 1
-            Textfieldlabel.Size = UDim2.new(1, -240, 1, 0)
+            local isGroupbox = (targetParent and targetParent.Name == "contentFrame")
+            Textfieldlabel.Size = UDim2.new(1, isGroupbox and -130 or -240, 1, 0)
             Textfieldlabel.Font = Enum.Font.BuilderSansMedium
             Textfieldlabel.Text = name
             RegisterTheme(Textfieldlabel, "TextColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(160, 160, 180))
@@ -1964,8 +2418,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             local Frame_2 = Instance.new("Frame")
             Frame_2.Parent = Textfield
             RegisterTheme(Frame_2, "BackgroundColor3", Color3.fromRGB(228, 228, 238), Color3.fromRGB(32, 32, 42))
-            Frame_2.Position = UDim2.new(1, -233, 0.5, -17)
-            Frame_2.Size = UDim2.new(0, 233, 0, 34)
+            Frame_2.Position = UDim2.new(1, isGroupbox and -123 or -233, 0.5, -17)
+            Frame_2.Size = UDim2.new(0, isGroupbox and 123 or 233, 0, 34)
             local Uc_6 = Instance.new("UICorner")
             Uc_6.CornerRadius = UDim.new(0, 8)
             Uc_6.Parent = Frame_2
@@ -1997,13 +2451,13 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 end)
             end
         end
-        function Sec:Slider(name, min, max, default, callback, Flag)
+        function Sec:Slider(name, min, max, default, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             default = (ConfigManager.Elements[Flag] ~= nil and ConfigManager.Elements[Flag].Value ~= nil) and ConfigManager.Elements[Flag].Value or default
             local Sliderrow = Instance.new("Frame")
             Sliderrow.Name = "sliderrow"
-            Sliderrow.Parent = Workareamain
+            Sliderrow.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Sliderrow })
             Sliderrow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Sliderrow.BackgroundTransparency = 1
@@ -2013,7 +2467,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Sliderlabel.Name = "sliderlabel"
             Sliderlabel.Parent = Sliderrow
             Sliderlabel.BackgroundTransparency = 1
-            Sliderlabel.Size = UDim2.new(1, -250, 1, 0)
+            local isGroupbox = (targetParent and targetParent.Name == "contentFrame")
+            Sliderlabel.Size = UDim2.new(1, isGroupbox and -130 or -250, 1, 0)
             Sliderlabel.Font = Enum.Font.BuilderSansMedium
             Sliderlabel.Text = name
             RegisterTheme(Sliderlabel, "TextColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(160, 160, 180))
@@ -2024,8 +2479,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Valuelabel.Name = "valuelabel"
             Valuelabel.Parent = Sliderrow
             Valuelabel.BackgroundTransparency = 1
-            Valuelabel.Position = UDim2.new(1, -55, 0, 0)
-            Valuelabel.Size = UDim2.new(0, 55, 1, 0)
+            Valuelabel.Position = UDim2.new(1, isGroupbox and -35 or -55, 0, 0)
+            Valuelabel.Size = UDim2.new(0, isGroupbox and 35 or 55, 1, 0)
             Valuelabel.Font = Enum.Font.BuilderSansMedium
             Valuelabel.Text = tostring(default)
             Valuelabel.TextColor3 = CurrentAccentColor
@@ -2035,8 +2490,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Rail.Name = "rail"
             Rail.Parent = Sliderrow
             RegisterTheme(Rail, "BackgroundColor3", Color3.fromRGB(200, 200, 215), Color3.fromRGB(45, 45, 58))
-            Rail.Position = UDim2.new(1, -240, 0.5, -3)
-            Rail.Size = UDim2.new(0, 180, 0, 4)
+            Rail.Position = UDim2.new(1, isGroupbox and -120 or -240, 0.5, -3)
+            Rail.Size = UDim2.new(0, isGroupbox and 80 or 180, 0, 4)
             Rail.BorderSizePixel = 0
             local Uc_r = Instance.new("UICorner")
             Uc_r.CornerRadius = UDim.new(1, 0)
@@ -2106,14 +2561,14 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             end)
             ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) SetValue(val) end }
         end
-        function Sec:Dropdown(name, options, default, callback, Flag)
+        function Sec:Dropdown(name, options, default, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             if type(options) == 'table' then for _, o in ipairs(options) do table.insert(Sec.SearchableText, string.upper(tostring(o))) end end
             Flag = Flag or name
             default = (ConfigManager.Elements[Flag] ~= nil and ConfigManager.Elements[Flag].Value ~= nil) and ConfigManager.Elements[Flag].Value or default
             local Droprow = Instance.new("Frame")
             Droprow.Name = "droprow"
-            Droprow.Parent = Workareamain
+            Droprow.Parent = targetParent or Workareamain
             local SearchStr = string.upper(name)
             if type(options) == "table" then for _, o in ipairs(options) do SearchStr = SearchStr .. " " .. string.upper(tostring(o)) end end
             table.insert(Sec.ElementsList, { text = SearchStr, gui = Droprow })
@@ -2125,7 +2580,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Droplabel_top.Name = "droplabel_top"
             Droplabel_top.Parent = Droprow
             Droplabel_top.BackgroundTransparency = 1
-            Droplabel_top.Size = UDim2.new(1, -240, 1, 0)
+            local isGroupbox = (targetParent and targetParent.Name == "contentFrame")
+            Droplabel_top.Size = UDim2.new(1, isGroupbox and -130 or -240, 1, 0)
             Droplabel_top.Font = Enum.Font.BuilderSansMedium
             Droplabel_top.Text = name
             RegisterTheme(Droplabel_top, "TextColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(160, 160, 180))
@@ -2137,18 +2593,19 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Dropbtn.ZIndex = 20
             Dropbtn.Parent = Droprow
             RegisterTheme(Dropbtn, "BackgroundColor3", Color3.fromRGB(228, 228, 238), Color3.fromRGB(32, 32, 42))
-            Dropbtn.Position = UDim2.new(1, -233, 0.5, -17)
-            Dropbtn.Size = UDim2.new(0, 233, 0, 34)
+            Dropbtn.Position = UDim2.new(1, isGroupbox and -123 or -233, 0.5, -17)
+            Dropbtn.Size = UDim2.new(0, isGroupbox and 123 or 233, 0, 34)
             Dropbtn.Font = Enum.Font.BuilderSans
             local Droplabel = Instance.new("TextLabel", Dropbtn)
             Droplabel.BackgroundTransparency = 1
-            Droplabel.Size = UDim2.new(1, -20, 1, 0)
+            Droplabel.Size = UDim2.new(1, -30, 1, 0)
             Droplabel.Position = UDim2.new(0, 10, 0, 0)
             Droplabel.Font = Enum.Font.BuilderSans
             Droplabel.ZIndex = 21
             RegisterTheme(Droplabel, "TextColor3", Color3.fromRGB(15, 15, 20), Color3.fromRGB(240, 240, 245))
             Droplabel.TextSize = 14
             Droplabel.TextXAlignment = Enum.TextXAlignment.Left
+            Droplabel.TextTruncate = Enum.TextTruncate.AtEnd
             Dropbtn.AutoButtonColor = false
             Dropbtn.Text = ""
             Droplabel.Text = (default or (options[1] or ""))
@@ -2170,7 +2627,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             local CurrentValue = default or (options[1] or "")
             local Listframe = Instance.new("ScrollingFrame")
             Listframe.Name = "listframe"
-            Listframe.Parent = Workareamain
+            Listframe.Parent = targetParent or Workareamain
             RegisterTheme(Listframe, "BackgroundColor3", Color3.fromRGB(238, 238, 245), Color3.fromRGB(24, 24, 32))
             Listframe.BorderSizePixel = 0
             Listframe.Size = UDim2.new(1, 0, 0, 0)
@@ -2313,14 +2770,14 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             end)
             return DropdownObj
         end
-        function Sec:MultiDropdown(name, options, defaultOptions, callback, Flag)
+        function Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             if type(options) == 'table' then for _, o in ipairs(options) do table.insert(Sec.SearchableText, string.upper(tostring(o))) end end
             Flag = Flag or name
             defaultOptions = defaultOptions or {}
             local Droprow = Instance.new("Frame")
             Droprow.Name = "droprow"
-            Droprow.Parent = Workareamain
+            Droprow.Parent = targetParent or Workareamain
             local SearchStr = string.upper(name)
             if type(options) == "table" then for _, o in ipairs(options) do SearchStr = SearchStr .. " " .. string.upper(tostring(o)) end end
             table.insert(Sec.ElementsList, { text = SearchStr, gui = Droprow })
@@ -2332,7 +2789,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Droplabel_top.Name = "droplabel_top"
             Droplabel_top.Parent = Droprow
             Droplabel_top.BackgroundTransparency = 1
-            Droplabel_top.Size = UDim2.new(1, -240, 1, 0)
+            local isGroupbox = (targetParent and targetParent.Name == "contentFrame")
+            Droplabel_top.Size = UDim2.new(1, isGroupbox and -130 or -240, 1, 0)
             Droplabel_top.Font = Enum.Font.BuilderSansMedium
             Droplabel_top.Text = name
             RegisterTheme(Droplabel_top, "TextColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(160, 160, 180))
@@ -2344,18 +2802,19 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Dropbtn.ZIndex = 20
             Dropbtn.Parent = Droprow
             RegisterTheme(Dropbtn, "BackgroundColor3", Color3.fromRGB(228, 228, 238), Color3.fromRGB(32, 32, 42))
-            Dropbtn.Position = UDim2.new(1, -233, 0.5, -17)
-            Dropbtn.Size = UDim2.new(0, 233, 0, 34)
+            Dropbtn.Position = UDim2.new(1, isGroupbox and -123 or -233, 0.5, -17)
+            Dropbtn.Size = UDim2.new(0, isGroupbox and 123 or 233, 0, 34)
             Dropbtn.Font = Enum.Font.BuilderSans
             local Droplabel = Instance.new("TextLabel", Dropbtn)
             Droplabel.BackgroundTransparency = 1
-            Droplabel.Size = UDim2.new(1, -20, 1, 0)
+            Droplabel.Size = UDim2.new(1, -30, 1, 0)
             Droplabel.Position = UDim2.new(0, 10, 0, 0)
             Droplabel.Font = Enum.Font.BuilderSans
             Droplabel.ZIndex = 21
             RegisterTheme(Droplabel, "TextColor3", Color3.fromRGB(15, 15, 20), Color3.fromRGB(240, 240, 245))
             Droplabel.TextSize = 14
             Droplabel.TextXAlignment = Enum.TextXAlignment.Left
+            Droplabel.TextTruncate = Enum.TextTruncate.AtEnd
             Dropbtn.AutoButtonColor = false
             Dropbtn.Text = ""
             Dropbtn.ClipsDescendants = true
@@ -2379,13 +2838,17 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 if #CurrentValues == 0 then
                     Droplabel.Text = "None"
                 else
-                    Droplabel.Text = table.concat(CurrentValues, ", ")
+                    if #CurrentValues > 2 then
+                        Droplabel.Text = CurrentValues[1] .. ", " .. CurrentValues[2] .. ", ..."
+                    else
+                        Droplabel.Text = table.concat(CurrentValues, ", ")
+                    end
                 end
             end
             UpdateLabel()
             local Listframe = Instance.new("ScrollingFrame")
             Listframe.Name = "listframe"
-            Listframe.Parent = Workareamain
+            Listframe.Parent = targetParent or Workareamain
             RegisterTheme(Listframe, "BackgroundColor3", Color3.fromRGB(238, 238, 245), Color3.fromRGB(24, 24, 32))
             Listframe.BorderSizePixel = 0
             Listframe.Size = UDim2.new(1, 0, 0, 0)
@@ -2514,12 +2977,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             end)
             return DropdownObj
         end
-        function Sec:ColorPicker(name, default, callback, Flag)
+        function Sec:ColorPicker(name, default, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Cprow = Instance.new("Frame")
             Cprow.Name = "cprow"
-            Cprow.Parent = Workareamain
+            Cprow.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Cprow })
             Cprow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Cprow.BackgroundTransparency = 1
@@ -2554,7 +3017,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             local PickerOpen = false
             local Pickerframe = Instance.new("Frame")
             Pickerframe.Name = "pickerframe"
-            Pickerframe.Parent = Workareamain
+            Pickerframe.Parent = targetParent or Workareamain
             RegisterTheme(Pickerframe, "BackgroundColor3", Color3.fromRGB(245, 245, 245), Color3.fromRGB(40, 40, 40))
             Pickerframe.BorderSizePixel = 0
             Pickerframe.Size = UDim2.new(1, 0, 0, 0)
@@ -2730,12 +3193,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 end
             end)
         end
-        function Sec:Keybind(name, default, callback, Flag)
+        function Sec:Keybind(name, default, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Kbrow = Instance.new("Frame")
             Kbrow.Name = "kbrow"
-            Kbrow.Parent = Workareamain
+            Kbrow.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Kbrow })
             Kbrow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Kbrow.BackgroundTransparency = 1
@@ -2788,16 +3251,26 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     end
                 end)
                 Con = UserInputService.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.Keyboard then
-                        Cancelled = true
-                        CurrentKey = input.KeyCode
-                        if ConfigManager.Elements[Flag] then ConfigManager.Elements[Flag].Value = CurrentKey.Name end
-                        Kbbtn.Text = input.KeyCode.Name
-                        RegisterTheme(Kbbtn, "TextColor3", Color3.fromRGB(90, 90, 100), Color3.fromRGB(200, 200, 210))
-                        Picking = false
-                        Con:Disconnect()
-                    end
-                end)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                Cancelled = true
+                if input.KeyCode == Enum.KeyCode.Escape then
+                    Kbbtn.Text = CurrentKey and CurrentKey.Name or "None"
+                elseif input.KeyCode == Enum.KeyCode.Backspace then
+                    CurrentKey = nil
+                    if ConfigManager.Elements[Flag] then ConfigManager.Elements[Flag].Value = "None" end
+                    Kbbtn.Text = "None"
+                elseif input.KeyCode ~= Enum.KeyCode.Unknown then
+                    CurrentKey = input.KeyCode
+                    if ConfigManager.Elements[Flag] then ConfigManager.Elements[Flag].Value = CurrentKey.Name end
+                    Kbbtn.Text = input.KeyCode.Name
+                else
+                    Kbbtn.Text = CurrentKey and CurrentKey.Name or "None"
+                end
+                RegisterTheme(Kbbtn, "TextColor3", Color3.fromRGB(90, 90, 100), Color3.fromRGB(200, 200, 210))
+                Picking = false
+                Con:Disconnect()
+            end
+        end)
             end)
             ConfigManager.Elements[Flag] = { Value = CurrentKey and CurrentKey.Name or "None", Set = function(self, val) if val == "None" then CurrentKey = nil; Kbbtn.Text = "None" else CurrentKey = Enum.KeyCode[val]; Kbbtn.Text = val end end }
             local KbConn = UserInputService.InputBegan:Connect(function(input, gp)
@@ -2809,10 +3282,10 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             end)
             table.insert(CleanupKeybinds, KbConn)
         end
-        function Sec:Paragraph(Title, Content)
+        function Sec:Paragraph(Title, Content, targetParent)
             local Para = Instance.new("TextLabel")
             Para.Name = "para"
-            Para.Parent = Workareamain
+            Para.Parent = targetParent or Workareamain
             local SearchStr = string.upper(Title) .. " " .. string.upper(Content)
             table.insert(Sec.ElementsList, { text = SearchStr, gui = Para })
             Para.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -2851,7 +3324,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Sidebar2.MouseButton1Click:Connect(function()
             Sec:Select()
         end)
-        if isExtra then
+        if _internalExtra then
             table.insert(ExtraTabs, Sec)
             Sidebar2.Visible = false
         else
@@ -2861,70 +3334,63 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     end
     local function CreateSettingsTab()
         local Setsec = Window:Section("Settings", "rbxassetid://10734950309", true)
-        Setsec:Divider("UI Settings")
-        Setsec:Keybind("Menu Bind", visiblekey or Enum.KeyCode.LeftControl, function()
-            Window:ToggleVisible()
-        end, "Settings_MenuBind")
-        do
-            local MbFlag = "Settings_MenuBind"
-            local OrigEl = ConfigManager.Elements[MbFlag]
-            if OrigEl then
-                task.spawn(function()
-                    local LastVal = OrigEl.Value
-                    while true do
-                        task.wait(0.2)
-                        if not OrigEl then break end
-                        local v = OrigEl.Value
-                        if v and v ~= LastVal then
-                            LastVal = v
-                            local Kc = Enum.KeyCode[v]
-                            if Kc then
-                                RebindVisibleKey(Kc)
-                                local BindPath = Lib.FolderName .. "/menu_bind.txt"
-                                if makefolder and not isfolder(Lib.FolderName) then makefolder(Lib.FolderName) end
-                                pcall(writefile, BindPath, v)
-                            end
-                        end
-                    end
-                end)
+        
+        local LeftGroup = Setsec:AddLeftGroupbox("UI Settings")
+        LeftGroup:Button("Unload Library", function()
+            local Container = gethui and gethui() or game:GetService("CoreGui")
+            for _, v in pairs(Container:GetChildren()) do
+                if v.Name == "MacOSLibrary_GUI" then
+                    v:Destroy()
+                end
             end
-        end
-        Setsec:Switch("Keybinds Window", false, function(v)
+        end)
+        LeftGroup:Keybind("Menu Bind", Enum.KeyCode.LeftControl, function(v)
+            if v then
+                visiblekey = v.KeyCode
+                if Lib.FolderName then
+                    local BindPath = Lib.FolderName .. "/menu_bind.txt"
+                    if makefolder and not isfolder(Lib.FolderName) then makefolder(Lib.FolderName) end
+                    pcall(writefile, BindPath, v.KeyCode.Name)
+                end
+            end
+        end, "Settings_MenuBind")
+        LeftGroup:Switch("Keybinds Window", false, function(v)
             KeybindsWindowFrame.Visible = v
             if BlurEnabled then
                 if v then
-                    Blur:BindFrame(KeybindsWindowFrame.BlurFrame, {
+                    Blur:BindFrame(KeybindsWindowFrame:FindFirstChild("blurFrame"), {
                         Transparency = 0.98,
                         Color = Color3.fromRGB(255, 255, 255)
                     })
                 else
-                    if Blur:HasBinding(KeybindsWindowFrame.BlurFrame) then
-                        Blur:UnbindFrame(KeybindsWindowFrame.BlurFrame)
+                    if Blur:HasBinding(KeybindsWindowFrame:FindFirstChild("blurFrame")) then
+                        Blur:UnbindFrame(KeybindsWindowFrame:FindFirstChild("blurFrame"))
                     end
                 end
             end
         end, "Settings_KeybindsWindow")
-        Setsec:Switch("Disable Splash Screen", ConfigManager.DisableSplash or false, function(v)
+        LeftGroup:Switch("Disable Splash Screen", ConfigManager.DisableSplash or false, function(v)
             ConfigManager.DisableSplash = v; ConfigManager:SaveUISettings()
         end)
-        Setsec:Divider("Config Manager")
+        
+        local RightGroup = Setsec:AddRightGroupbox("Config Manager")
         local ConfigsList = ConfigManager:GetConfigs()
         if #ConfigsList == 0 then ConfigsList = {"Default"} end
         local ActiveConfig = ConfigsList[1]
-        local ConfigDropdown = Setsec:Dropdown("Select Config", ConfigsList, ConfigsList[1], function(opt)
+        local ConfigDropdown = RightGroup:Dropdown("Select Config", ConfigsList, ConfigsList[1], function(opt)
             ActiveConfig = opt
         end, "Settings_ConfigDropdown")
-        Setsec:Button("Refresh Configs", function()
+        RightGroup:Button("Refresh Configs", function()
             local NewList = ConfigManager:GetConfigs()
             if #NewList == 0 then NewList = {"Default"} end
             if ConfigDropdown and ConfigDropdown.Refresh then
                 ConfigDropdown:Refresh(NewList)
             end
         end)
-        Setsec:TextField("Create New Config", "Type name and save...", function(txt)
+        RightGroup:TextField("Create New Config", "Type name and save...", function(txt)
             ActiveConfig = txt
         end, "ConfigNameInput")
-        Setsec:Button("Save Config", function()
+        RightGroup:Button("Save Config", function()
             if ActiveConfig and ActiveConfig ~= "" then
                 ConfigManager:Save(ActiveConfig)
                 Window:TempNotify("Config Saved", "Saved config as " .. ActiveConfig, "rbxassetid://12608259004")
@@ -2935,13 +3401,13 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 end
             end
         end)
-        Setsec:Button("Load Config", function()
+        RightGroup:Button("Load Config", function()
             if ActiveConfig and ActiveConfig ~= "" then
                 ConfigManager:Load(ActiveConfig)
                 Window:TempNotify("Config Loaded", "Loaded config " .. ActiveConfig, "rbxassetid://12608259004")
             end
         end)
-        Setsec:Button("Delete Config", function()
+        RightGroup:Button("Delete Config", function()
             if ActiveConfig and ActiveConfig ~= "" then
                 ConfigManager:Delete(ActiveConfig)
                 Window:TempNotify("Config Deleted", "Deleted config " .. ActiveConfig, "rbxassetid://12608259004")
@@ -2952,15 +3418,15 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 end
             end
         end)
-        Setsec:Button("Set as AutoLoad", function()
+        RightGroup:Button("Set as AutoLoad", function()
             if ActiveConfig and ActiveConfig ~= "" then
                 ConfigManager:SaveAutoLoad(ActiveConfig)
                 Window:TempNotify("AutoLoad Set", ActiveConfig .. " will now auto-load on start.", "rbxassetid://12608259004")
             end
         end)
-        Setsec:Divider("UI Customization")
         
-        Setsec:Slider("UI Transparency", 0, 100, 15, function(v)
+        local CustomGroup = Setsec:AddLeftGroupbox("UI Customization")
+        CustomGroup:Slider("UI Transparency", 0, 100, 15, function(v)
             Main.BackgroundTransparency = v / 100
             KeybindsWindowFrame.BackgroundTransparency = v / 100
         end, "Settings_UITransparency")
@@ -2988,7 +3454,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 end
             end
         end
-        Setsec:ColorPicker("Accent Color", ConfigManager.AccentColor or Color3.fromRGB(21, 103, 251), function(c)
+        CustomGroup:ColorPicker("Accent Color", ConfigManager.AccentColor or Color3.fromRGB(21, 103, 251), function(c)
             ConfigManager.AccentColor = c
             ConfigManager:SaveUISettings()
             ApplyAccent(c)
@@ -2997,7 +3463,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         if ConfigManager.AccentColor then
             ApplyAccent(ConfigManager.AccentColor)
         end
-        Setsec:Switch("Rainbow Accent", ConfigManager.Rainbow or false, function(v)
+        CustomGroup:Switch("Rainbow Accent", ConfigManager.Rainbow or false, function(v)
             ConfigManager.Rainbow = v
             ConfigManager:SaveUISettings()
             if v then
@@ -3010,7 +3476,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 if RainbowConnection then RainbowConnection:Disconnect() end
             end
         end, "Settings_Rainbow")
-        Setsec:Switch("Transparent Sidebar", false, function(v)
+        CustomGroup:Switch("Transparent Sidebar", false, function(v)
             if v then
                 Workarea.BackgroundTransparency = 0
                 Workareacornerhider.BackgroundTransparency = 0
@@ -3019,10 +3485,10 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 Workareacornerhider.BackgroundTransparency = 1
             end
         end, "Settings_TransparentSidebar")
-        Setsec:Switch("Global Error Catcher", false, function(v)
+        CustomGroup:Switch("Global Error Catcher", false, function(v)
             ErrorCatcherEnabled = v
         end, "Settings_ErrorCatcher")
-        Setsec:Switch("Blur Background", false, function(v)
+        CustomGroup:Switch("Blur Background", false, function(v)
             BlurEnabled = v
             if v then
                 if visible then
@@ -3031,7 +3497,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                         Color = Color3.fromRGB(255, 255, 255)
                     })
                     if KeybindsWindowFrame.Visible then
-                        Blur:BindFrame(KeybindsWindowFrame.BlurFrame, {
+                        Blur:BindFrame(KeybindsWindowFrame:FindFirstChild("blurFrame"), {
                             Transparency = 0.98,
                             Color = Color3.fromRGB(255, 255, 255)
                         })
@@ -3041,96 +3507,16 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 if Blur:HasBinding(BlurFrame) then
                     Blur:UnbindFrame(BlurFrame)
                 end
-                if Blur:HasBinding(KeybindsWindowFrame.BlurFrame) then
-                    Blur:UnbindFrame(KeybindsWindowFrame.BlurFrame)
+                if Blur:HasBinding(KeybindsWindowFrame:FindFirstChild("blurFrame")) then
+                    Blur:UnbindFrame(KeybindsWindowFrame:FindFirstChild("blurFrame"))
                 end
             end
         end, "Settings_BlurBackground")
-        Setsec:Slider("UI Scale", 0.4, 1.5, CScale, function(v)
+        CustomGroup:Slider("UI Scale", 0.4, 1.5, CScale, function(v)
             Uiscale.Scale = v
         end, "Settings_UIScale")
     end
-    local function CreateCreditsTab()
-        local CredSec = Window:Section("Credits", "rbxassetid://10747373426", true)
-        CredSec:Divider("MacOSLibrary")
-        local Container = CredSec:GetContainer()
-        local RedTreeContainer = Instance.new("Frame")
-        RedTreeContainer.Parent = Container
-        RedTreeContainer.Size = UDim2.new(1, 0, 0, 60)
-        RedTreeContainer.BackgroundTransparency = 1
-        local RedTree = Instance.new("TextLabel")
-        RedTree.Parent = RedTreeContainer
-        RedTree.Size = UDim2.new(1, 0, 1, 0)
-        RedTree.BackgroundTransparency = 1
-        RedTree.Font = Enum.Font.BuilderSansBold
-        RedTree.Text = "RedTree1222"
-        RedTree.TextSize = 28
-        RedTree.TextColor3 = Color3.fromRGB(255, 255, 255)
-        RedTree.ZIndex = 2
-        local Grad1 = Instance.new("UIGradient", RedTree)
-        Grad1.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 50, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 200, 255))
-        })
-        task.spawn(function()
-            local Rot = 0
-            while task.wait() do
-                if not RedTree.Parent then break end
-                Rot = Rot + 0.3
-                Grad1.Rotation = Rot
-            end
-        end)
-        local ZoroC = Instance.new("Frame")
-        ZoroC.Parent = Container
-        ZoroC.Size = UDim2.new(1, 0, 0, 45)
-        ZoroC.BackgroundTransparency = 1
-        local ZoroT = Instance.new("TextLabel")
-        ZoroT.Parent = ZoroC
-        ZoroT.Size = UDim2.new(1, 0, 1, 0)
-        ZoroT.BackgroundTransparency = 1
-        ZoroT.Font = Enum.Font.FredokaOne
-        ZoroT.Text = "Zoro"
-        ZoroT.TextSize = 28
-        ZoroT.TextColor3 = Color3.fromRGB(255, 255, 255)
-        ZoroT.ZIndex = 2
-        local ZoroG = Instance.new("UIGradient", ZoroT)
-        ZoroG.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 140, 0)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 200, 50)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 160, 20))
-        })
-        task.spawn(function()
-            local r = 0
-            while task.wait() do
-                if not ZoroT.Parent then break end
-                r = r + 0.15
-                ZoroG.Rotation = r
-            end
-        end)
-        CredSec:Divider("Inspiration")
-        local Hamza = Instance.new("TextLabel")
-        Hamza.Parent = Container
-        Hamza.Size = UDim2.new(1, 0, 0, 40)
-        Hamza.BackgroundTransparency = 1
-        Hamza.Font = Enum.Font.BuilderSansMedium
-        Hamza.Text = "Inspired by AppleLibrary"
-        Hamza.TextSize = 18
-        Hamza.TextColor3 = Color3.fromRGB(200, 200, 210)
-        local Grad2 = Instance.new("UIGradient", Hamza)
-        Grad2.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 100, 120)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 160, 180))
-        })
-        task.spawn(function()
-            local r = 0
-            while task.wait() do
-                if not Hamza.Parent then break end
-                r = r + 0.5
-                Grad2.Rotation = r
-            end
-        end)
-    end
-    local KeybindSec = nil
+local KeybindSec = nil
     local function CreateKeybindsTab()
         KeybindSec = Window:Section("Keybinds", "rbxassetid://10723416765", true)
         RefreshKeybindsUI = function()
@@ -3291,8 +3677,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         end
     end
     CreateSettingsTab()
-    CreateCreditsTab()
-    CreateKeybindsTab()
+        CreateKeybindsTab()
     local AutoloadConfig = ConfigManager:GetAutoLoad()
     if AutoloadConfig then
         task.spawn(function()
@@ -3371,7 +3756,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         TweenService:Create(Searchtextbox, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
             TextTransparency = IsSidebarCollapsed and 1 or 0
         }):Play()
-        local SIconPos = IsSidebarCollapsed and UDim2.new(0.5, -12, 0.5, -10) or UDim2.new(0.038, -2, 0.139, 2)
+        local SIconPos = IsSidebarCollapsed and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0, 16, 0.5, 0)
         TweenService:Create(Searchicon, TInfo, { Position = SIconPos }):Play()
         local AllTabs = {}
         for _, t in ipairs(MainTabs) do table.insert(AllTabs, t) end
@@ -3386,11 +3771,14 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         end
         local TxtTrans = IsSidebarCollapsed and 1 or 0
         local PadLeft = IsSidebarCollapsed and 0 or 40
-        local HighlightWidth = IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7)
+        local HighlightWidth = IsSidebarCollapsed and 34 or 183
         local TargetIconPos = IsSidebarCollapsed and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0, -16, 0.5, 0)
         local Highlight = Sidebar:FindFirstChild("TabHighlight")
         if Highlight then
-            TweenService:Create(Highlight, TInfo, { Size = UDim2.new(0, HighlightWidth, 0, 34) }):Play()
+            local TargetX = 3.5
+            TweenService:Create(Highlight, TInfo, { 
+                Size = UDim2.new(0, HighlightWidth, 0, 34)
+            }):Play()
         end
         for i, t in ipairs(AllTabs) do
             local IsFirstMain = FirstMainIdx and (t == MainTabs[FirstMainIdx]) or false
@@ -3429,26 +3817,25 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 end
             end
         end
-        local ActiveTab = nil
-        for _, s in ipairs(Sections) do
-            if s.TextColor3 == Color3.fromRGB(255, 255, 255) then
-                ActiveTab = s
-                break
+        if shared.HighlightConnection then shared.HighlightConnection:Disconnect() end
+        local startTick = tick()
+        shared.HighlightConnection = RunService.RenderStepped:Connect(function()
+            if tick() - startTick > 0.45 then
+                if shared.HighlightConnection then shared.HighlightConnection:Disconnect() end
+                return
             end
-        end
-        if ActiveTab and Highlight then
-            local Connection
-            Connection = RunService.RenderStepped:Connect(function()
-                if ActiveTab and Highlight then
-                    Highlight.Position = UDim2.new(0, ActiveTab.AbsolutePosition.X - Main.AbsolutePosition.X, 0, ActiveTab.AbsolutePosition.Y - Main.AbsolutePosition.Y)
-                else
-                    if Connection then Connection:Disconnect() end
+            local currentTab = nil
+            for _, s in ipairs(Sections) do
+                if s.TextColor3 == Color3.fromRGB(255, 255, 255) then
+                    currentTab = s
+                    break
                 end
-            end)
-            task.delay(0.4, function()
-                if Connection then Connection:Disconnect() end
-            end)
-        end
+            end
+            local Highlight = Sidebar:FindFirstChild("TabHighlight")
+            if currentTab and Highlight then
+                Highlight.Position = UDim2.new(0, 3.5, 0, currentTab.AbsolutePosition.Y - Sidebar.AbsolutePosition.Y + Sidebar.CanvasPosition.Y)
+            end
+        end)
         task.delay(0.4, function() CollapseCooldown = false end)
     end)
     RefreshBtn.MouseButton1Click:Connect(function()
@@ -3468,19 +3855,27 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             }):Play()
             local SearchWidth = ExpandedSidebarWidth - 8
             TweenService:Create(Search, TInfo, {Size = UDim2.new(0, SearchWidth, 0, 34)}):Play()
-            for _, Btn in ipairs(Sidebar:GetChildren()) do
-                if Btn:IsA("TextButton") and Btn.Name == "sidebar2" then
-                    TweenService:Create(Btn, TInfo, {Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34)}):Play()
+            for _, Btn in ipairs(SidebarList:GetChildren()) do
+                if Btn:IsA("TextButton") and (Btn.Name == "sidebar2" or Btn.Name == "sidebar2_selected") then
+                    TweenService:Create(Btn, TInfo, {Size = UDim2.new(0, 183, 0, 34)}):Play()
                 elseif Btn:IsA("TextLabel") and Btn.Name == "sidebardivider" then
-                    TweenService:Create(Btn, TInfo, {Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 20)}):Play()
+                    TweenService:Create(Btn, TInfo, {Size = UDim2.new(0, 183, 0, 20)}):Play()
                 end
             end
             local Highlight = Sidebar:FindFirstChild("TabHighlight")
             if Highlight then
-                TweenService:Create(Highlight, TInfo, {Size = UDim2.new(0, ExpandedSidebarWidth - 7, 0, 34)}):Play()
+                TweenService:Create(Highlight, TInfo, {Size = UDim2.new(0, 183, 0, 34)}):Play()
             end
         end
     end)
+    
+    if not ConfigManager.WelcomeShown then
+        Window:Notify("Welcome to MacOSLibrary!", "Right click a toggle or button to set a keybind for it. Press the green buttons to manage settings or your keybinds. Hold the end of the tabs to change the size of them. Drag the corners of the ui to change the size of the ui.", "Got it!", "info", function()
+            ConfigManager.WelcomeShown = true
+            ConfigManager:SaveUISettings()
+        end)
+    end
+    
     return Window
 end
 return Lib
