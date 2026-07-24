@@ -1314,6 +1314,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     pcall(function() RunService:UnbindFromRenderStep(CursorRenderName) end)
     RunService:BindToRenderStep(CursorRenderName, 2000, function() 
         if visible then
+            UserInputService.MouseIconEnabled = true
             if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
                 UserInputService.MouseBehavior = Enum.MouseBehavior.Default
             end
@@ -1371,6 +1372,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 if not visible then
                     TargetY = -2000
                     CurrentY = -2000
+                    UserInputService.MouseIconEnabled = OriginalMouseIconEnabled
                 end
                 Dbcooper = false 
                 IsAnimatingVis = false 
