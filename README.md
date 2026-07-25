@@ -2,7 +2,7 @@
 ui library that looks like apple's macos and ipados. 
 
 ## what you need
-you need an executor with `gethui()` or `syn.protect_gui`. tested on potassium and delta.
+you need an executor with `gethui()` support. tested on potassium and delta.
 
 ## how to use
 load it directly from github:

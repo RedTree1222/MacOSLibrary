@@ -17,12 +17,11 @@ local ExpandedSidebarWidth = 190
 local CollapseCooldown = false
 local visible = true
 local Dbcooper = false
-local ScrollSyncConnected = false
 local BlurEnabled = false
 local CleanupKeybinds = {}
 local CleanupToggles = {}
 local RegisteredElements = {}
-local ActiveKeybindData = {} 
+local ActiveKeybindData = {}
 local IsPromptingKeybind = false
 local KeybindPromptCallback = nil
 local KeybindPromptElementName = nil
@@ -228,17 +227,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             imageLabel.ImageRectOffset = Vector2.new(0, 0)
         end
     end
-    local function ApplyLucide(imgLabel, iconName)
-        if IconMap[iconName] then
-            imgLabel.Image = IconMap[iconName]
-        else
-            imgLabel.Image = "rbxassetid://10734909540" 
-        end
-    end
     CurrentTheme = ConfigManager.CurrentTheme
     local ErrorCatcherEnabled = false
     if ConfigManager.DisableSplash then dosplash = false end
-    local CustomKeybinds = {}
     local IsPromptingKeybind = false
     local KeybindPromptCallback = nil
     if deleteprevious then
@@ -251,7 +242,6 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     end
     scrgui = Instance.new("ScreenGui")
     scrgui.Name = "MacOSLibrary_GUI"
-    if syn then syn.protect_gui(scrgui) end
     if gethui then scrgui.Parent = gethui() else scrgui.Parent = game:GetService("CoreGui") end
     scrgui.IgnoreGuiInset = true
     local ModalUnlocker = Instance.new("TextButton")
@@ -416,7 +406,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Fab.Position = UDim2.new(1, -20, 0.5, 0)
         Fab.Size = UDim2.new(0, 46, 0, 46)
         Fab.BackgroundColor3 = Color3.fromRGB(245, 245, 250)
-        Fab.Image = "rbxassetid://12621719043" 
+        Fab.Image = "rbxassetid://12621719043"
         Fab.ImageRectOffset = Vector2.new(0, 0)
         Fab.ImageRectSize = Vector2.new(0, 0)
         Fab.ScaleType = Enum.ScaleType.Fit
@@ -522,7 +512,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         CurrentY = CurrentY + (TargetY - CurrentY) * (1 - math.exp(-FollowSpeed * dt))
         Main.Position = UDim2.new(0.5, CurrentX, 0.5, CurrentY)
     end)
-    
+
     local SidebarResizer = Instance.new("TextButton")
     SidebarResizer.Name = "SidebarResizer"
     SidebarResizer.Parent = Main
@@ -531,11 +521,11 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     SidebarResizer.Position = UDim2.new(0, 18 + ExpandedSidebarWidth - 4, 0, 106)
     SidebarResizer.Size = UDim2.new(0, 12, 1, -124)
     SidebarResizer.ZIndex = 50
-    
+
     local SidebarResizing = false
     local SidebarStartX = 0
     local SidebarStartWidth = ExpandedSidebarWidth
-    
+
     SidebarResizer.InputBegan:Connect(function(input)
         if not IsSidebarCollapsed and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
             SidebarResizing = true
@@ -543,13 +533,13 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             SidebarStartWidth = ExpandedSidebarWidth
         end
     end)
-    
+
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             SidebarResizing = false
         end
     end)
-    
+
     local Workarea = Instance.new("Frame")
     Workarea.Name = "workarea"
     Workarea.Parent = Main
@@ -733,14 +723,14 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     Sidebar.AutomaticCanvasSize = "Y"
     Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
     Sidebar.ScrollBarThickness = 0
-    
+
     local SidebarList = Instance.new("Frame")
     SidebarList.Name = "sidebarList"
     SidebarList.Parent = Sidebar
     SidebarList.BackgroundTransparency = 1
     SidebarList.Size = UDim2.new(1, 0, 1, 0)
     SidebarList.ZIndex = 20
-    
+
     local Ull_2 = Instance.new("UIListLayout")
     Ull_2.Parent = SidebarList
     Ull_2.HorizontalAlignment = Enum.HorizontalAlignment.Left
@@ -805,10 +795,6 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             if ActiveTab and Highlight then
                 Highlight.Visible = ActiveTab.Visible
             end
-        end
-        if ActiveTab and Highlight then
-            local Connection
-
         end
     end)
     local Buttons = Instance.new("Frame")
@@ -1309,10 +1295,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
     Tp(Main, UDim2.new(0.5, 0, 0.5, 0), 1)
     Window = {}
     local OriginalMouseIconEnabled = true
-    local OriginalMouseBehavior = Enum.MouseBehavior.Default
     local CursorRenderName = "AppleLibMouseUnlock"
     pcall(function() RunService:UnbindFromRenderStep(CursorRenderName) end)
-    RunService:BindToRenderStep(CursorRenderName, 2000, function() 
+    RunService:BindToRenderStep(CursorRenderName, 2000, function()
         if visible then
             UserInputService.MouseIconEnabled = true
             if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
@@ -1328,9 +1313,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         KeybindPromptElementName = Flag or "Unknown"
         if KpTitle then KpTitle.Text = "Binding: " .. (Flag or "") end
         if KpSub then KpSub.Text = "Press a key... [ESC to cancel]" end
-        if Notifdarkness then 
+        if Notifdarkness then
             Notifdarkness.ZIndex = 100
-            Notifdarkness.Visible = true 
+            Notifdarkness.Visible = true
         end
         if KeybindPromptFrame then KeybindPromptFrame.Visible = true end
     end
@@ -1357,9 +1342,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Uiscale.Scale = 0
             Main.Position = UDim2.new(0.5, CurrentX, 0.5, CurrentY)
             TweenService:Create(Uiscale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = CScale}):Play()
-            task.delay(0.3, function() 
-                Dbcooper = false 
-                IsAnimatingVis = false 
+            task.delay(0.3, function()
+                Dbcooper = false
+                IsAnimatingVis = false
             end)
         else
             if Blur:HasBinding(BlurFrame) then
@@ -1368,14 +1353,14 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             LastX = TargetX
             LastY = TargetY
             TweenService:Create(Uiscale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Scale = 0}):Play()
-            task.delay(0.25, function() 
+            task.delay(0.25, function()
                 if not visible then
                     TargetY = -2000
                     CurrentY = -2000
                     UserInputService.MouseIconEnabled = OriginalMouseIconEnabled
                 end
-                Dbcooper = false 
-                IsAnimatingVis = false 
+                Dbcooper = false
+                IsAnimatingVis = false
             end)
         end
     end
@@ -1395,9 +1380,6 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         end)
         RebindVisibleKey(visiblekey)
     end
-    local ActiveNotifs = {}
-    local NotifBaseY = IsMob and 0.15 or 0.08
-    local NotifSpacing = IsMob and 85 or 105
     function Window:TempNotify(text1, text2, icon)
         local TempNotifContainer = scrgui:FindFirstChild("TempNotifContainer")
         if not TempNotifContainer then
@@ -1410,7 +1392,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             TempNotifContainer.AnchorPoint = Vector2.new(1, 0)
             TempNotifContainer.ZIndex = 1000
             TempNotifContainer.ClipsDescendants = false
-            
+
             local UIList = Instance.new("UIListLayout")
             UIList.Parent = TempNotifContainer
             UIList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1418,7 +1400,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             UIList.VerticalAlignment = Enum.VerticalAlignment.Top
             UIList.Padding = UDim.new(0, 10)
         end
-        
+
         local Tempnotif = Instance.new("Frame")
         Tempnotif.Name = "tempnotif"
         Tempnotif.Parent = TempNotifContainer
@@ -1428,11 +1410,11 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Tempnotif.Size = UDim2.new(0, 447, 0, 117)
         Tempnotif.Visible = true
         Tempnotif.ZIndex = 1001
-        
+
         local Uc_21 = Instance.new("UICorner")
         Uc_21.CornerRadius = UDim.new(0, 18)
         Uc_21.Parent = Tempnotif
-        
+
         local T1 = Instance.new("TextLabel")
         T1.Name = "t1"
         T1.Parent = Tempnotif
@@ -1447,7 +1429,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         RegisterTheme(T1, "TextColor3", Color3.fromRGB(95, 95, 95), Color3.fromRGB(200, 200, 200))
         T1.TextSize = 28
         T1.TextXAlignment = Enum.TextXAlignment.Left
-        
+
         local T2 = Instance.new("TextLabel")
         T2.Name = "t2"
         T2.Parent = Tempnotif
@@ -1464,7 +1446,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         T2.TextWrapped = true
         T2.TextXAlignment = Enum.TextXAlignment.Left
         T2.TextYAlignment = Enum.TextYAlignment.Top
-        
+
         local Ticon = Instance.new("ImageLabel")
         Ticon.Name = "ticon"
         Ticon.Parent = Tempnotif
@@ -1477,7 +1459,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         ResolveIcon(Ticon, icon)
         RegisterTheme(Ticon, "ImageColor3", Color3.fromRGB(95, 95, 95), Color3.fromRGB(200, 200, 200))
         Ticon.ScaleType = Enum.ScaleType.Fit
-        
+
         local Tshadow = Instance.new("ImageLabel")
         Tshadow.Name = "tshadow"
         Tshadow.Parent = Tempnotif
@@ -1490,7 +1472,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Tshadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
         Tshadow.ImageTransparency = 1
         Tshadow.TileSize = UDim2.new(0, 1, 0, 1)
-        
+
         TweenService:Create(Tempnotif, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             BackgroundTransparency = 0.150
         }):Play()
@@ -1506,7 +1488,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         TweenService:Create(Tshadow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             ImageTransparency = 0.400
         }):Play()
-        
+
         task.delay(4.5, function()
             if Tempnotif and Tempnotif.Parent then
                 local TwOut = TweenService:Create(Tempnotif, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
@@ -1708,12 +1690,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Sec.TabButton = Sidebar2
         function Sec:Select(force)
             if Workareamain.Visible and Sidebar2.Name == "sidebar2_selected" and not force then return end
-            
+
             local BgL = Color3.fromRGB(0, 0, 0)
             local BgD = Color3.fromRGB(255, 255, 255)
             local TxtL = Color3.fromRGB(100, 100, 100)
             local TxtD = Color3.fromRGB(140, 140, 155)
-            
+
             for b, v in next, Sections do
                 v.Name = "sidebar2"
                 v.BackgroundColor3 = (CurrentTheme == "light") and BgL or BgD
@@ -1724,7 +1706,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     Ico.ImageColor3 = (CurrentTheme == "light") and TxtL or TxtD
                 end
             end
-            
+
             Sidebar2.Name = "sidebar2_selected"
             Sidebar2.BackgroundTransparency = 1
             Sidebar2.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1732,7 +1714,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             if MyIco then
                 MyIco.ImageColor3 = Color3.fromRGB(255, 255, 255)
             end
-            
+
             local Highlight = Sidebar:FindFirstChild("TabHighlight")
             local IsNew = false
             if not Highlight then
@@ -1751,16 +1733,16 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     Dark = CurrentAccentColor
                 })
             end
-            
+
             Highlight.Visible = true
             local CurrentTargetWidth = IsSidebarCollapsed and 34 or 183
             local TargetX = 3.5
             local TargetW = CurrentTargetWidth
             local TargetH = 34
             local TargetY = Sidebar2.AbsolutePosition.Y - Sidebar.AbsolutePosition.Y + Sidebar.CanvasPosition.Y
-            
+
             if shared.HighlightConnection then shared.HighlightConnection:Disconnect() end
-            
+
             if IsNew or Highlight.BackgroundTransparency == 1 or (Highlight.Position.Y.Offset == 0 and Highlight.Position.X.Offset == 0) then
                 Highlight.Position = UDim2.new(0, TargetX, 0, TargetY)
                 Highlight.Size = UDim2.new(0, TargetW, 0, TargetH)
@@ -1774,7 +1756,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     BackgroundTransparency = 0
                 }):Play()
             end
-            
+
             for b, v in next, Workareas do
                 if v ~= Workareamain then
                     v.Visible = false
@@ -1786,7 +1768,6 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 Position = UDim2.new(0, 0, 0, 56)
             }):Play()
         end
-
 
         function Sec:GetContainer()
             return Workareamain
@@ -1802,7 +1783,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     ColumnsFrame.Size = UDim2.new(1, 0, 0, 0)
                     ColumnsFrame.AutomaticSize = Enum.AutomaticSize.Y
                     ColumnsFrame.ZIndex = 4
-                    
+
                     local LeftCol = Instance.new("Frame")
                     LeftCol.Name = "LeftColumn"
                     LeftCol.Parent = ColumnsFrame
@@ -1811,12 +1792,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     LeftCol.Size = UDim2.new(0.5, -4, 0, 0)
                     LeftCol.AutomaticSize = Enum.AutomaticSize.Y
                     LeftCol.ZIndex = 4
-                    
+
                     local LeftList = Instance.new("UIListLayout")
                     LeftList.Parent = LeftCol
                     LeftList.SortOrder = Enum.SortOrder.LayoutOrder
                     LeftList.Padding = UDim.new(0, 8)
-                    
+
                     local RightCol = Instance.new("Frame")
                     RightCol.Name = "RightColumn"
                     RightCol.Parent = ColumnsFrame
@@ -1825,7 +1806,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     RightCol.Size = UDim2.new(0.5, -4, 0, 0)
                     RightCol.AutomaticSize = Enum.AutomaticSize.Y
                     RightCol.ZIndex = 4
-                    
+
                     local RightList = Instance.new("UIListLayout")
                     RightList.Parent = RightCol
                     RightList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1859,25 +1840,25 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             GroupFrame.BackgroundTransparency = 0.4
             GroupFrame.BorderSizePixel = 0
             GroupFrame.ClipsDescendants = true
-            
+
             RegisterTheme(GroupFrame, "BackgroundColor3", Color3.fromRGB(235, 235, 242), Color3.fromRGB(32, 32, 40))
-            
+
             local UcGroup = Instance.new("UICorner")
             UcGroup.CornerRadius = UDim.new(0, 10)
             UcGroup.Parent = GroupFrame
-            
+
             local GroupStroke = Instance.new("UIStroke")
             GroupStroke.Parent = GroupFrame
             GroupStroke.Thickness = 1
             GroupStroke.Transparency = 0.6
             RegisterTheme(GroupStroke, "Color", Color3.fromRGB(200, 200, 215), Color3.fromRGB(50, 50, 65))
-            
+
             local HeaderBar = Instance.new("Frame")
             HeaderBar.Name = "headerBar"
             HeaderBar.Parent = GroupFrame
             HeaderBar.Size = UDim2.new(1, 0, 0, 36)
             HeaderBar.BackgroundTransparency = 1
-            
+
             local HeaderTitle = Instance.new("TextLabel")
             HeaderTitle.Name = "headerTitle"
             HeaderTitle.Parent = HeaderBar
@@ -1889,7 +1870,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             HeaderTitle.TextSize = 13
             HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
             RegisterTheme(HeaderTitle, "TextColor3", Color3.fromRGB(60, 60, 65), Color3.fromRGB(220, 220, 230))
-            
+
             local ToggleBtn = Instance.new("ImageButton")
             ToggleBtn.Name = "toggleBtn"
             ToggleBtn.Parent = HeaderBar
@@ -1899,7 +1880,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             ToggleBtn.BackgroundTransparency = 1
             ResolveIcon(ToggleBtn, "chevron-down")
             RegisterTheme(ToggleBtn, "ImageColor3", Color3.fromRGB(120, 120, 130), Color3.fromRGB(180, 180, 190))
-            
+
             local ContentFrame = Instance.new("Frame")
             ContentFrame.Name = "contentFrame"
             ContentFrame.Parent = GroupFrame
@@ -1907,16 +1888,16 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             ContentFrame.Size = UDim2.new(1, -12, 0, 0)
             ContentFrame.AutomaticSize = Enum.AutomaticSize.Y
             ContentFrame.BackgroundTransparency = 1
-            
+
             local ContentPadding = Instance.new("UIPadding")
             ContentPadding.Parent = ContentFrame
             ContentPadding.PaddingBottom = UDim.new(0, 8)
-            
+
             local ContentLayout = Instance.new("UIListLayout")
             ContentLayout.Parent = ContentFrame
             ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
             ContentLayout.Padding = UDim.new(0, 6)
-            
+
             local IsCollapsed = false
             local function ToggleCollapse()
                 IsCollapsed = not IsCollapsed
@@ -1938,7 +1919,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     TweenService:Create(ToggleBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                         Rotation = 0
                     }):Play()
-                    
+
                     task.delay(0.25, function()
                         if not IsCollapsed then
                             GroupFrame.AutomaticSize = Enum.AutomaticSize.Y
@@ -1946,17 +1927,17 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     end)
                 end
             end
-            
+
             ToggleBtn.MouseButton1Click:Connect(ToggleCollapse)
             HeaderTitle.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     ToggleCollapse()
                 end
             end)
-            
+
             local GroupObj = {}
             GroupObj.Frame = GroupFrame
-            
+
             function GroupObj:AddToggle(name, default, callback, Flag) return Sec:Switch(name, default, callback, Flag, ContentFrame) end
             function GroupObj:AddButton(name, callback, isDestructive) return Sec:Button(name, callback, isDestructive, ContentFrame) end
             function GroupObj:AddSlider(name, min, max, default, callback, Flag) return Sec:Slider(name, min, max, default, callback, Flag, ContentFrame) end
@@ -1968,7 +1949,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             function GroupObj:AddParagraph(title, content) return Sec:Paragraph(title, content, ContentFrame) end
             function GroupObj:AddTextField(name, placeholder, callback, Flag) return Sec:TextField(name, placeholder, callback, Flag, ContentFrame) end
             function GroupObj:AddDivider(text) return Sec:Divider(text, ContentFrame) end
-            
+
             GroupObj.Switch = function(self, ...) return GroupObj:AddToggle(...) end
             GroupObj.Button = function(self, ...) return GroupObj:AddButton(...) end
             GroupObj.Slider = function(self, ...) return GroupObj:AddSlider(...) end
@@ -1980,14 +1961,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             GroupObj.Paragraph = function(self, ...) return GroupObj:AddParagraph(...) end
             GroupObj.TextField = function(self, ...) return GroupObj:AddTextField(...) end
             GroupObj.Divider = function(self, ...) return GroupObj:AddDivider(...) end
-            
+
             return GroupObj
         end
         function Sec:AddLeftGroupbox(title) return Sec:Groupbox(title, "left") end
         function Sec:AddRightGroupbox(title) return Sec:Groupbox(title, "right") end
 
-        
-        
         function Sec:Tabbox(side)
             local function GetColumnsFrame()
                 local ColumnsFrame = Workareamain:FindFirstChild("ColumnsFrame")
@@ -1999,7 +1978,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     ColumnsFrame.Size = UDim2.new(1, 0, 0, 0)
                     ColumnsFrame.AutomaticSize = Enum.AutomaticSize.Y
                     ColumnsFrame.ZIndex = 4
-                    
+
                     local LeftCol = Instance.new("Frame")
                     LeftCol.Name = "LeftColumn"
                     LeftCol.Parent = ColumnsFrame
@@ -2008,12 +1987,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     LeftCol.Size = UDim2.new(0.5, -4, 0, 0)
                     LeftCol.AutomaticSize = Enum.AutomaticSize.Y
                     LeftCol.ZIndex = 4
-                    
+
                     local LeftList = Instance.new("UIListLayout")
                     LeftList.Parent = LeftCol
                     LeftList.SortOrder = Enum.SortOrder.LayoutOrder
                     LeftList.Padding = UDim.new(0, 8)
-                    
+
                     local RightCol = Instance.new("Frame")
                     RightCol.Name = "RightColumn"
                     RightCol.Parent = ColumnsFrame
@@ -2022,7 +2001,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     RightCol.Size = UDim2.new(0.5, -4, 0, 0)
                     RightCol.AutomaticSize = Enum.AutomaticSize.Y
                     RightCol.ZIndex = 4
-                    
+
                     local RightList = Instance.new("UIListLayout")
                     RightList.Parent = RightCol
                     RightList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -2039,9 +2018,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 if Sec.LastSide == "left" then Sec.LastSide = "right"; TargetColName = "RightColumn"
                 else Sec.LastSide = "left"; TargetColName = "LeftColumn" end
             end
-            
+
             TargetColumn = GetColumnsFrame():FindFirstChild(TargetColName)
-            
+
             local TabboxFrame = Instance.new("Frame")
             TabboxFrame.Name = "Tabbox"
             TabboxFrame.Parent = TargetColumn
@@ -2051,28 +2030,28 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             TabboxFrame.BorderSizePixel = 0
             TabboxFrame.ClipsDescendants = true
             RegisterTheme(TabboxFrame, "BackgroundColor3", Color3.fromRGB(235, 235, 242), Color3.fromRGB(32, 32, 40))
-            
+
             local UcGroup = Instance.new("UICorner")
             UcGroup.CornerRadius = UDim.new(0, 10)
             UcGroup.Parent = TabboxFrame
-            
+
             local GroupStroke = Instance.new("UIStroke")
             GroupStroke.Parent = TabboxFrame
             GroupStroke.Thickness = 1
             GroupStroke.Transparency = 0.6
             RegisterTheme(GroupStroke, "Color", Color3.fromRGB(200, 200, 215), Color3.fromRGB(50, 50, 65))
-            
+
             local TopBar = Instance.new("Frame")
             TopBar.Name = "TopBar"
             TopBar.Parent = TabboxFrame
             TopBar.BackgroundTransparency = 1
             TopBar.Size = UDim2.new(1, 0, 0, 35)
-            
+
             local TabList = Instance.new("UIListLayout")
             TabList.Parent = TopBar
             TabList.FillDirection = Enum.FillDirection.Horizontal
             TabList.SortOrder = Enum.SortOrder.LayoutOrder
-            
+
             local Divider = Instance.new("Frame")
             Divider.Name = "Divider"
             Divider.Parent = TabboxFrame
@@ -2081,7 +2060,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             Divider.BorderSizePixel = 0
             Divider.BackgroundTransparency = 0.6
             RegisterTheme(Divider, "BackgroundColor3", Color3.fromRGB(200, 200, 215), Color3.fromRGB(50, 50, 65))
-            
+
             local ContentArea = Instance.new("Frame")
             ContentArea.Name = "contentArea"
             ContentArea.Parent = TabboxFrame
@@ -2089,7 +2068,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             ContentArea.Position = UDim2.new(0, 6, 0, 36)
             ContentArea.Size = UDim2.new(1, -12, 0, 0)
             ContentArea.AutomaticSize = Enum.AutomaticSize.Y
-            
+
             local ActiveLine = Instance.new("Frame")
             ActiveLine.Name = "ActiveLine"
             ActiveLine.Parent = TabboxFrame
@@ -2099,11 +2078,11 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             ActiveLine.Position = UDim2.new(0, 0, 0, 34)
             ActiveLine.ZIndex = 5
             table.insert(ThemeElements, {Instance = ActiveLine, Property = "BackgroundColor3", Light = CurrentAccentColor, Dark = CurrentAccentColor})
-            
+
             local TabboxObj = {}
             TabboxObj.Tabs = {}
             TabboxObj.ActiveTab = nil
-            
+
             function TabboxObj:AddTab(name)
                 local TabBtn = Instance.new("TextButton")
                 TabBtn.Name = name
@@ -2116,12 +2095,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 RegisterTheme(TabBtn, "TextColor3", Color3.fromRGB(60, 60, 65), Color3.fromRGB(220, 220, 230))
                 TabBtn.TextTransparency = 0.5
                 TabBtn.TextSize = 13
-                
+
                 local TabPadding = Instance.new("UIPadding")
                 TabPadding.PaddingLeft = UDim.new(0, 12)
                 TabPadding.PaddingRight = UDim.new(0, 12)
                 TabPadding.Parent = TabBtn
-                
+
                 local TabContent = Instance.new("Frame")
                 TabContent.Name = "contentFrame"
                 TabContent.Parent = ContentArea
@@ -2129,16 +2108,16 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 TabContent.Size = UDim2.new(1, 0, 0, 0)
                 TabContent.AutomaticSize = Enum.AutomaticSize.Y
                 TabContent.Visible = false
-                
+
                 local ContentList = Instance.new("UIListLayout")
                 ContentList.Parent = TabContent
                 ContentList.SortOrder = Enum.SortOrder.LayoutOrder
-                
+
                 local ContentPadding = Instance.new("UIPadding")
                 ContentPadding.PaddingTop = UDim.new(0, 8)
                 ContentPadding.PaddingBottom = UDim.new(0, 8)
                 ContentPadding.Parent = TabContent
-                
+
                 local TabObj = {}
                 TabObj.Frame = TabContent
                 TabObj.Btn = TabBtn
@@ -2162,21 +2141,21 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 function TabObj:Label(n) return Sec:Label(n, TabContent) end
                 function TabObj:AddDivider(n) return Sec:Divider(n, TabContent) end
                 function TabObj:Divider(n) return Sec:Divider(n, TabContent) end
-                
+
                 TabBtn.MouseButton1Click:Connect(function()
                     if TabboxObj.ActiveTab == TabObj then return end
                     TabboxObj.ActiveTab = TabObj
-                    
+
                     for _, t in pairs(TabboxObj.Tabs) do
                         if t ~= TabObj then
                             TweenService:Create(t.Btn, TweenInfo.new(0.3), {TextTransparency = 0.5}):Play()
                             t.Frame.Visible = false
                         end
                     end
-                    
+
                     TweenService:Create(TabBtn, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
                     TabContent.Visible = true
-                    
+
                                         task.spawn(function()
                         RunService.RenderStepped:Wait()
                         TweenService:Create(ActiveLine, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -2185,9 +2164,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                         }):Play()
                     end)
                 end)
-                
+
                 table.insert(TabboxObj.Tabs, TabObj)
-                
+
                 if #TabboxObj.Tabs == 1 then
                     TabboxObj.ActiveTab = TabObj
                     TabBtn.TextTransparency = 0
@@ -2198,10 +2177,10 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                         ActiveLine.Position = UDim2.new(0, TabBtn.AbsolutePosition.X - TopBar.AbsolutePosition.X, 0, 34)
                     end)
                 end
-                
+
                 return TabObj
             end
-            
+
             return TabboxObj
         end
 function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
@@ -3014,7 +2993,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             local Uc_cp = Instance.new("UICorner")
             Uc_cp.CornerRadius = UDim.new(0, 8)
             Uc_cp.Parent = Preview
-            
+
             local CurrentColor = default or CurrentAccentColor
             local PickerOpen = false
             local Pickerframe = Instance.new("Frame")
@@ -3233,7 +3212,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             local Uc_kb = Instance.new("UICorner")
             Uc_kb.CornerRadius = UDim.new(1, 0)
             Uc_kb.Parent = Kbbtn
-            
+
             local CurrentKey = default
             local Picking = false
             Kbbtn.MouseButton1Click:Connect(function()
@@ -3336,7 +3315,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
     end
     local function CreateSettingsTab()
         local Setsec = Window:Section("Settings", "rbxassetid://10734950309", true)
-        
+
         local LeftGroup = Setsec:AddLeftGroupbox("UI Settings")
         LeftGroup:Button("Unload Library", function()
             local Container = gethui and gethui() or game:GetService("CoreGui")
@@ -3374,7 +3353,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
         LeftGroup:Switch("Disable Splash Screen", ConfigManager.DisableSplash or false, function(v)
             ConfigManager.DisableSplash = v; ConfigManager:SaveUISettings()
         end)
-        
+
         local RightGroup = Setsec:AddRightGroupbox("Config Manager")
         local ConfigsList = ConfigManager:GetConfigs()
         if #ConfigsList == 0 then ConfigsList = {"Default"} end
@@ -3426,7 +3405,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Window:TempNotify("AutoLoad Set", ActiveConfig .. " will now auto-load on start.", "rbxassetid://12608259004")
             end
         end)
-        
+
         local CustomGroup = Setsec:AddLeftGroupbox("UI Customization")
         CustomGroup:Slider("UI Transparency", 0, 100, 15, function(v)
             Main.BackgroundTransparency = v / 100
@@ -3778,7 +3757,7 @@ local KeybindSec = nil
         local Highlight = Sidebar:FindFirstChild("TabHighlight")
         if Highlight then
             local TargetX = 3.5
-            TweenService:Create(Highlight, TInfo, { 
+            TweenService:Create(Highlight, TInfo, {
                 Size = UDim2.new(0, HighlightWidth, 0, 34)
             }):Play()
         end
@@ -3789,7 +3768,7 @@ local KeybindSec = nil
                 local IsFirstInMode = (IsFirstMain and not IsExtraMode) or (IsFirstExtra and IsExtraMode)
                 local TargetHeight = IsSidebarCollapsed and 12 or 20
                 if IsFirstInMode and IsSidebarCollapsed then
-                    TargetHeight = 0 
+                    TargetHeight = 0
                 end
                 TweenService:Create(t.Label, TInfo, {
                     TextTransparency = TxtTrans,
@@ -3870,14 +3849,14 @@ local KeybindSec = nil
             end
         end
     end)
-    
+
     if not ConfigManager.WelcomeShown then
         Window:Notify("Welcome to MacOSLibrary!", "Right click a toggle or button to set a keybind for it. Press the green buttons to manage settings or your keybinds. Hold the end of the tabs to change the size of them. Drag the corners of the ui to change the size of the ui.", "Got it!", "info", function()
             ConfigManager.WelcomeShown = true
             ConfigManager:SaveUISettings()
         end)
     end
-    
+
     return Window
 end
 return Lib
