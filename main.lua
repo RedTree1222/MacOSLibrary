@@ -2649,6 +2649,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             Dropbtn.Text = ""
             Droplabel.Text = (default or (options[1] or ""))
             Dropbtn.ClipsDescendants = true
+            if tooltip and tooltip ~= "" and Window.SetTooltip then Window:SetTooltip(Droprow, tooltip) end
             local Uc_db = Instance.new("UICorner")
             Uc_db.CornerRadius = UDim.new(0, 9)
             Uc_db.Parent = Dropbtn
