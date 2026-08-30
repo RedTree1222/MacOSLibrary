@@ -3994,7 +3994,7 @@ local KeybindSec = nil
         function Window:ShowTooltip(text, anchorGui)
             if not text or text == "" then return end
             if TooltipShowThread then task.cancel(TooltipShowThread) end
-            TooltipShowThread = task.delay(0.3, function()
+            TooltipShowThread = task.delay(0.2, function()
                 TooltipText.Text = text
                 TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
                 TooltipFrame.BackgroundTransparency = 0.08
@@ -4037,12 +4037,18 @@ local KeybindSec = nil
 
         function Window:SetTooltip(gui, text)
             if not text or text == "" then return end
-            gui.MouseEnter:Connect(function()
-                Window:ShowTooltip(text, gui)
-            end)
-            gui.MouseLeave:Connect(function()
-                Window:HideTooltip()
-            end)
+            local targets = {gui}
+            for _, child in gui:GetDescendants() do
+                if child:IsA("GuiButton") then table.insert(targets, child) end
+            end
+            for _, target in targets do
+                target.MouseEnter:Connect(function()
+                    Window:ShowTooltip(text, gui)
+                end)
+                target.MouseLeave:Connect(function()
+                    Window:HideTooltip()
+                end)
+            end
         end
     end
 
