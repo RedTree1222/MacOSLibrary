@@ -1374,6 +1374,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             end
         end)
     end
+    Window.RebindVisibleKey = RebindVisibleKey
     if visiblekey then
         Minimize.MouseButton1Click:Connect(function()
             Window:ToggleVisible()
@@ -1938,10 +1939,10 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             local GroupObj = {}
             GroupObj.Frame = GroupFrame
 
-            function GroupObj:AddToggle(name, default, callback, Flag) return Sec:Switch(name, default, callback, Flag, ContentFrame) end
-            function GroupObj:AddButton(name, callback, isDestructive) return Sec:Button(name, callback, isDestructive, ContentFrame) end
-            function GroupObj:AddSlider(name, min, max, default, callback, Flag) return Sec:Slider(name, min, max, default, callback, Flag, ContentFrame) end
-            function GroupObj:AddDropdown(name, options, default, callback, Flag) return Sec:Dropdown(name, options, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddToggle(name, default, callback, Flag, tooltip) return Sec:Switch(name, default, callback, Flag, ContentFrame, tooltip) end
+            function GroupObj:AddButton(name, callback, isDestructive, tooltip) return Sec:Button(name, callback, isDestructive, ContentFrame, tooltip) end
+            function GroupObj:AddSlider(name, min, max, default, callback, Flag, tooltip) return Sec:Slider(name, min, max, default, callback, Flag, ContentFrame, tooltip) end
+            function GroupObj:AddDropdown(name, options, default, callback, Flag, tooltip) return Sec:Dropdown(name, options, default, callback, Flag, ContentFrame, tooltip) end
             function GroupObj:AddMultiDropdown(name, options, defaultOptions, callback, Flag) return Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, ContentFrame) end
             function GroupObj:AddColorPicker(name, default, callback, Flag) return Sec:ColorPicker(name, default, callback, Flag, ContentFrame) end
             function GroupObj:AddKeybind(name, default, callback, Flag) return Sec:Keybind(name, default, callback, Flag, ContentFrame) end
@@ -2121,12 +2122,12 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 local TabObj = {}
                 TabObj.Frame = TabContent
                 TabObj.Btn = TabBtn
-                function TabObj:AddToggle(n, d, c, f) return Sec:Switch(n, d, c, f, TabContent) end
-                function TabObj:Switch(n, d, c, f) return Sec:Switch(n, d, c, f, TabContent) end
-                function TabObj:AddSlider(n, min, max, d, c, f) return Sec:Slider(n, min, max, d, c, f, TabContent) end
-                function TabObj:Slider(n, min, max, d, c, f) return Sec:Slider(n, min, max, d, c, f, TabContent) end
-                function TabObj:AddDropdown(n, opt, d, c, f) return Sec:Dropdown(n, opt, d, c, f, TabContent) end
-                function TabObj:Dropdown(n, opt, d, c, f) return Sec:Dropdown(n, opt, d, c, f, TabContent) end
+                function TabObj:AddToggle(n, d, c, f, t) return Sec:Switch(n, d, c, f, TabContent, t) end
+                function TabObj:Switch(n, d, c, f, t) return Sec:Switch(n, d, c, f, TabContent, t) end
+                function TabObj:AddSlider(n, min, max, d, c, f, t) return Sec:Slider(n, min, max, d, c, f, TabContent, t) end
+                function TabObj:Slider(n, min, max, d, c, f, t) return Sec:Slider(n, min, max, d, c, f, TabContent, t) end
+                function TabObj:AddDropdown(n, opt, d, c, f, t) return Sec:Dropdown(n, opt, d, c, f, TabContent, t) end
+                function TabObj:Dropdown(n, opt, d, c, f, t) return Sec:Dropdown(n, opt, d, c, f, TabContent, t) end
                 function TabObj:AddMultiDropdown(n, opt, d, c, f) return Sec:MultiDropdown(n, opt, d, c, f, TabContent) end
                 function TabObj:MultiDropdown(n, opt, d, c, f) return Sec:MultiDropdown(n, opt, d, c, f, TabContent) end
                 function TabObj:AddColorPicker(n, d, c, f) return Sec:ColorPicker(n, d, c, f, TabContent) end
@@ -2207,11 +2208,12 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             Section.TextXAlignment = Enum.TextXAlignment.Left
             Section.TextYAlignment = Enum.TextYAlignment.Bottom
         end
-        function Sec:Button(name, callback, isDestructive, targetParent)
+        function Sec:Button(name, callback, isDestructive, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
             local Flag = name
             RegisteredElements[Flag] = callback
             local Button = Instance.new("TextButton")
+            if tooltip and tooltip ~= "" and Window.SetTooltip then Window:SetTooltip(Button, tooltip) end
             Button.Name = "button"
             Button.Text = name
             Button.Parent = targetParent or Workareamain
@@ -2284,7 +2286,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             Label.TextWrapped = true
             Label.Text = name
         end
-        function Sec:Switch(name, defaultmode, callback, Flag, targetParent)
+        function Sec:Switch(name, defaultmode, callback, Flag, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Mode = (ConfigManager.Elements[Flag] ~= nil and ConfigManager.Elements[Flag].Value ~= nil) and ConfigManager.Elements[Flag].Value or defaultmode
@@ -2292,6 +2294,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             local Toggleswitch = Instance.new("Frame")
             Toggleswitch.Name = "toggleswitch"
             Toggleswitch.Parent = targetParent or Workareamain
+            if tooltip and tooltip ~= "" and Window.SetTooltip then Window:SetTooltip(Toggleswitch, tooltip) end
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Toggleswitch })
             Toggleswitch.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Toggleswitch.BackgroundTransparency = 1
@@ -2432,11 +2435,12 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end)
             end
         end
-        function Sec:Slider(name, min, max, default, callback, Flag, targetParent)
+        function Sec:Slider(name, min, max, default, callback, Flag, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             default = (ConfigManager.Elements[Flag] ~= nil and ConfigManager.Elements[Flag].Value ~= nil) and ConfigManager.Elements[Flag].Value or default
             local Sliderrow = Instance.new("Frame")
+            if tooltip and tooltip ~= "" and Window.SetTooltip then Window:SetTooltip(Sliderrow, tooltip) end
             Sliderrow.Name = "sliderrow"
             Sliderrow.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Sliderrow })
@@ -2542,7 +2546,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             end)
             ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) SetValue(val) end }
         end
-        function Sec:Dropdown(name, options, default, callback, Flag, targetParent)
+        function Sec:Dropdown(name, options, default, callback, Flag, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
             if type(options) == 'table' then for _, o in ipairs(options) do table.insert(Sec.SearchableText, string.upper(tostring(o))) end end
             Flag = Flag or name
@@ -3855,6 +3859,97 @@ local KeybindSec = nil
             ConfigManager.WelcomeShown = true
             ConfigManager:SaveUISettings()
         end)
+    end
+
+    -- Tooltip system (macOS style)
+    do
+        local TooltipGui = Instance.new("ScreenGui")
+        TooltipGui.Name = "TooltipGui"
+        TooltipGui.IgnoreGuiInset = true
+        TooltipGui.DisplayOrder = 99999
+        TooltipGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        if gethui then TooltipGui.Parent = gethui() else TooltipGui.Parent = game:GetService("CoreGui") end
+
+        local TooltipFrame = Instance.new("Frame")
+        TooltipFrame.Name = "Tooltip"
+        TooltipFrame.Parent = TooltipGui
+        TooltipFrame.AutomaticSize = Enum.AutomaticSize.XY
+        TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
+        TooltipFrame.Visible = false
+        TooltipFrame.ZIndex = 99999
+        TooltipFrame.AnchorPoint = Vector2.new(0.5, 1)
+        RegisterTheme(TooltipFrame, "BackgroundColor3", Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 38))
+        TooltipFrame.BackgroundTransparency = 0.08
+
+        local TooltipCorner = Instance.new("UICorner")
+        TooltipCorner.CornerRadius = UDim.new(0, 8)
+        TooltipCorner.Parent = TooltipFrame
+
+        local TooltipStroke = Instance.new("UIStroke")
+        TooltipStroke.Parent = TooltipFrame
+        TooltipStroke.Transparency = 0.7
+        TooltipStroke.Thickness = 1
+        RegisterTheme(TooltipStroke, "Color", Color3.fromRGB(220, 220, 220), Color3.fromRGB(50, 50, 50))
+
+        local TooltipPadding = Instance.new("UIPadding")
+        TooltipPadding.PaddingLeft = UDim.new(0, 10)
+        TooltipPadding.PaddingRight = UDim.new(0, 10)
+        TooltipPadding.PaddingTop = UDim.new(0, 6)
+        TooltipPadding.PaddingBottom = UDim.new(0, 6)
+        TooltipPadding.Parent = TooltipFrame
+
+        local TooltipText = Instance.new("TextLabel")
+        TooltipText.Name = "TooltipText"
+        TooltipText.Parent = TooltipFrame
+        TooltipText.AutomaticSize = Enum.AutomaticSize.XY
+        TooltipText.Size = UDim2.new(0, 0, 0, 0)
+        TooltipText.BackgroundTransparency = 1
+        TooltipText.Font = Enum.Font.BuilderSansMedium
+        TooltipText.TextSize = 13
+        TooltipText.TextWrapped = true
+        TooltipText.TextXAlignment = Enum.TextXAlignment.Left
+        RegisterTheme(TooltipText, "TextColor3", Color3.fromRGB(100, 100, 100), Color3.fromRGB(170, 170, 185))
+
+        local ActiveTooltip = nil
+        local TooltipConn = nil
+
+        function Window:ShowTooltip(text, anchorGui)
+            if not text or text == "" then return end
+            TooltipText.Text = text
+            TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
+            TooltipFrame.Visible = true
+            TooltipFrame.Position = UDim2.new(0, 0, 0, 0)
+            task.wait()
+            local absPos = anchorGui.AbsolutePosition
+            local absSize = anchorGui.AbsoluteSize
+            local tooltipSize = TooltipFrame.AbsoluteSize
+            local x = absPos.X + (absSize.X / 2)
+            local y = absPos.Y - 8
+            x = math.clamp(x, tooltipSize.X / 2 + 8, workspace.CurrentCamera.ViewportSize.X - tooltipSize.X / 2 - 8)
+            if y - tooltipSize.Y < 0 then
+                TooltipFrame.AnchorPoint = Vector2.new(0.5, 0)
+                y = absPos.Y + absSize.Y + 8
+            else
+                TooltipFrame.AnchorPoint = Vector2.new(0.5, 1)
+            end
+            TooltipFrame.Position = UDim2.new(0, x, 0, y)
+            ActiveTooltip = text
+        end
+
+        function Window:HideTooltip()
+            TooltipFrame.Visible = false
+            ActiveTooltip = nil
+        end
+
+        function Window:SetTooltip(gui, text)
+            if not text or text == "" then return end
+            gui.MouseEnter:Connect(function()
+                Window:ShowTooltip(text, gui)
+            end)
+            gui.MouseLeave:Connect(function()
+                Window:HideTooltip()
+            end)
+        end
     end
 
     return Window
