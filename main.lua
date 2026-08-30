@@ -4083,10 +4083,22 @@ local KeybindSec = nil
         RegisterTheme(TooltipText, "TextColor3", Color3.fromRGB(100, 100, 100), Color3.fromRGB(170, 170, 185))
 
         local CurrentHoverInstance = nil
+        local TooltipRegistry = {} -- {gui = element, text = tooltipText}
 
-        function Window:ShowTooltip(text, anchorGui)
+        local function MouseIsOverGui(gui)
+            if not gui or not gui.Parent then return false end
+            local ok, result = pcall(function()
+                local absPos = gui.AbsolutePosition
+                local absSize = gui.AbsoluteSize
+                local Mouse = UserInputService:GetMouseLocation()
+                return Mouse.X >= absPos.X and Mouse.X <= absPos.X + absSize.X
+                    and Mouse.Y >= absPos.Y and Mouse.Y <= absPos.Y + absSize.Y
+            end)
+            return ok and result
+        end
+
+        function Window:ShowTooltip(text)
             if not text or text == "" then return end
-            CurrentHoverInstance = anchorGui
             TooltipText.Text = text
             local TextBounds = TextService:GetTextSize(text, 13, Enum.Font.BuilderSansMedium, Vector2.new(320, 10000))
             TooltipText.Size = UDim2.new(0, TextBounds.X, 0, TextBounds.Y)
@@ -4101,15 +4113,34 @@ local KeybindSec = nil
             CurrentHoverInstance = nil
         end
 
-        -- Follow cursor every frame
-        UserInputService.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement and CurrentHoverInstance then
-                local Mouse = input.Position
-                local ViewportSize = workspace.CurrentCamera.ViewportSize
+        -- Global mouse tracking — check every frame if mouse is over any registered tooltip element
+        RunService.RenderStepped:Connect(function()
+            local Mouse = UserInputService:GetMouseLocation()
+            local ViewportSize = workspace.CurrentCamera.ViewportSize
+            local found = false
+            -- Check in reverse order (most recently added first)
+            for i = #TooltipRegistry, 1, -1 do
+                local entry = TooltipRegistry[i]
+                if entry and entry.gui and entry.gui.Parent then
+                    if MouseIsOverGui(entry.gui) then
+                        if CurrentHoverInstance ~= entry.gui then
+                            CurrentHoverInstance = entry.guin                            Window:ShowTooltip(entry.text)
+                        end
+                        found = true
+                        break
+                    end
+                else
+                    table.remove(TooltipRegistry, i)
+                end
+            end
+            if not found and CurrentHoverInstance then
+                Window:HideTooltip()
+            end
+            -- Position tooltip at cursor
+            if TooltipFrame.Visible then
                 local X = Mouse.X + 14
                 local Y = Mouse.Y + 14
                 local tooltipSize = TooltipFrame.AbsoluteSize
-                -- Clamp to screen bounds
                 if X + tooltipSize.X > ViewportSize.X - 8 then
                     X = Mouse.X - tooltipSize.X - 8
                 end
@@ -4122,18 +4153,7 @@ local KeybindSec = nil
 
         function Window:SetTooltip(gui, text)
             if not text or text == "" then return end
-            local targets = {gui}
-            for _, child in gui:GetDescendants() do
-                if child:IsA("GuiButton") then table.insert(targets, child) end
-            end
-            for _, target in targets do
-                target.MouseEnter:Connect(function()
-                    Window:ShowTooltip(text, gui)
-                end)
-                target.MouseLeave:Connect(function()
-                    Window:HideTooltip()
-                end)
-            end
+            table.insert(TooltipRegistry, {gui = gui, text = text})
         end
     end
 
