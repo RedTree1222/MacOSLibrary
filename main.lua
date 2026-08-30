@@ -3913,31 +3913,48 @@ local KeybindSec = nil
         local ActiveTooltip = nil
         local TooltipConn = nil
 
+        local TooltipShowThread = nil
         function Window:ShowTooltip(text, anchorGui)
             if not text or text == "" then return end
-            TooltipText.Text = text
-            TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
-            TooltipFrame.Visible = true
-            TooltipFrame.Position = UDim2.new(0, 0, 0, 0)
-            task.wait()
-            local absPos = anchorGui.AbsolutePosition
-            local absSize = anchorGui.AbsoluteSize
-            local tooltipSize = TooltipFrame.AbsoluteSize
-            local x = absPos.X + (absSize.X / 2)
-            local y = absPos.Y - 8
-            x = math.clamp(x, tooltipSize.X / 2 + 8, workspace.CurrentCamera.ViewportSize.X - tooltipSize.X / 2 - 8)
-            if y - tooltipSize.Y < 0 then
-                TooltipFrame.AnchorPoint = Vector2.new(0.5, 0)
-                y = absPos.Y + absSize.Y + 8
-            else
-                TooltipFrame.AnchorPoint = Vector2.new(0.5, 1)
-            end
-            TooltipFrame.Position = UDim2.new(0, x, 0, y)
-            ActiveTooltip = text
+            if TooltipShowThread then task.cancel(TooltipShowThread) end
+            TooltipShowThread = task.delay(0.3, function()
+                TooltipText.Text = text
+                TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
+                TooltipFrame.BackgroundTransparency = 0.08
+                TooltipText.TextTransparency = 0
+                TooltipFrame.Visible = true
+                TooltipFrame.Position = UDim2.new(0, 0, 0, 0)
+                task.wait()
+                local absPos = anchorGui.AbsolutePosition
+                local absSize = anchorGui.AbsoluteSize
+                local tooltipSize = TooltipFrame.AbsoluteSize
+                local x = absPos.X + (absSize.X / 2)
+                local y = absPos.Y + absSize.Y + 12
+                x = math.clamp(x, tooltipSize.X / 2 + 8, workspace.CurrentCamera.ViewportSize.X - tooltipSize.X / 2 - 8)
+                if y + tooltipSize.Y > workspace.CurrentCamera.ViewportSize.Y - 10 then
+                    TooltipFrame.AnchorPoint = Vector2.new(0.5, 1)
+                    y = absPos.Y - 12
+                else
+                    TooltipFrame.AnchorPoint = Vector2.new(0.5, 0)
+                end
+                TooltipFrame.Position = UDim2.new(0, x, 0, y)
+                TooltipFrame.BackgroundTransparency = 1
+                TooltipText.TextTransparency = 1
+                TweenService:Create(TooltipFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.08}):Play()
+                TweenService:Create(TooltipText, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+                ActiveTooltip = text
+            end)
         end
 
         function Window:HideTooltip()
-            TooltipFrame.Visible = false
+            if TooltipShowThread then task.cancel(TooltipShowThread) TooltipShowThread = nil end
+            if TooltipFrame.Visible then
+                TweenService:Create(TooltipFrame, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1}):Play()
+                TweenService:Create(TooltipText, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
+                task.delay(0.1, function()
+                    TooltipFrame.Visible = false
+                end)
+            end
             ActiveTooltip = nil
         end
 
