@@ -3965,7 +3965,7 @@ local KeybindSec = nil
         end)
     end
 
-    -- Tooltip system (macOS style)
+    -- Tooltip system (cursor-following, like Obsidian)
     do
         local TooltipGui = Instance.new("ScreenGui")
         TooltipGui.Name = "TooltipGui"
@@ -3980,7 +3980,6 @@ local KeybindSec = nil
         TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
         TooltipFrame.Visible = false
         TooltipFrame.ZIndex = 99999
-        TooltipFrame.AnchorPoint = Vector2.new(0.5, 1)
         RegisterTheme(TooltipFrame, "BackgroundColor3", Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 38))
         TooltipFrame.BackgroundTransparency = 0.08
 
@@ -4012,55 +4011,43 @@ local KeybindSec = nil
         TooltipText.TextXAlignment = Enum.TextXAlignment.Left
         RegisterTheme(TooltipText, "TextColor3", Color3.fromRGB(100, 100, 100), Color3.fromRGB(170, 170, 185))
 
-        local ActiveTooltip = nil
-        local TooltipConn = nil
+        local CurrentHoverInstance = nil
 
-        local TooltipShowThread = nil
         function Window:ShowTooltip(text, anchorGui)
             if not text or text == "" then return end
-            if TooltipShowThread then task.cancel(TooltipShowThread) end
-            TooltipShowThread = task.delay(0.2, function()
-                TooltipText.Text = text
-                local TextBounds = TextService:GetTextSize(text, 13, Enum.Font.BuilderSansMedium, Vector2.new(320, 10000))
-                TooltipText.Size = UDim2.new(0, TextBounds.X, 0, TextBounds.Y)
-                TooltipFrame.Size = UDim2.new(0, TextBounds.X + 20, 0, TextBounds.Y + 12)
-                TooltipFrame.BackgroundTransparency = 0.08
-                TooltipText.TextTransparency = 0
-                TooltipFrame.Visible = true
-                TooltipFrame.Position = UDim2.new(0, 0, 0, 0)
-                task.wait()
-                local absPos = anchorGui.AbsolutePosition
-                local absSize = anchorGui.AbsoluteSize
-                local tooltipSize = TooltipFrame.AbsoluteSize
-                local x = absPos.X + (absSize.X / 2)
-                local y = absPos.Y + absSize.Y + 12
-                x = math.clamp(x, tooltipSize.X / 2 + 8, workspace.CurrentCamera.ViewportSize.X - tooltipSize.X / 2 - 8)
-                if y + tooltipSize.Y > workspace.CurrentCamera.ViewportSize.Y - 10 then
-                    TooltipFrame.AnchorPoint = Vector2.new(0.5, 1)
-                    y = absPos.Y - 12
-                else
-                    TooltipFrame.AnchorPoint = Vector2.new(0.5, 0)
-                end
-                TooltipFrame.Position = UDim2.new(0, x, 0, y)
-                TooltipFrame.BackgroundTransparency = 1
-                TooltipText.TextTransparency = 1
-                TweenService:Create(TooltipFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.08}):Play()
-                TweenService:Create(TooltipText, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-                ActiveTooltip = text
-            end)
+            CurrentHoverInstance = anchorGui
+            TooltipText.Text = text
+            local TextBounds = TextService:GetTextSize(text, 13, Enum.Font.BuilderSansMedium, Vector2.new(320, 10000))
+            TooltipText.Size = UDim2.new(0, TextBounds.X, 0, TextBounds.Y)
+            TooltipFrame.Size = UDim2.new(0, TextBounds.X + 20, 0, TextBounds.Y + 12)
+            TooltipFrame.BackgroundTransparency = 0.08
+            TooltipText.TextTransparency = 0
+            TooltipFrame.Visible = true
         end
 
         function Window:HideTooltip()
-            if TooltipShowThread then task.cancel(TooltipShowThread) TooltipShowThread = nil end
-            if TooltipFrame.Visible then
-                TweenService:Create(TooltipFrame, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1}):Play()
-                TweenService:Create(TooltipText, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
-                task.delay(0.1, function()
-                    TooltipFrame.Visible = false
-                end)
-            end
-            ActiveTooltip = nil
+            TooltipFrame.Visible = false
+            CurrentHoverInstance = nil
         end
+
+        -- Follow cursor every frame
+        UserInputService.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement and CurrentHoverInstance then
+                local Mouse = input.Position
+                local ViewportSize = workspace.CurrentCamera.ViewportSize
+                local X = Mouse.X + 14
+                local Y = Mouse.Y + 14
+                local tooltipSize = TooltipFrame.AbsoluteSize
+                -- Clamp to screen bounds
+                if X + tooltipSize.X > ViewportSize.X - 8 then
+                    X = Mouse.X - tooltipSize.X - 8
+                end
+                if Y + tooltipSize.Y > ViewportSize.Y - 8 then
+                    Y = Mouse.Y - tooltipSize.Y - 8
+                end
+                TooltipFrame.Position = UDim2.new(0, X, 0, Y)
+            end
+        end)
 
         function Window:SetTooltip(gui, text)
             if not text or text == "" then return end
