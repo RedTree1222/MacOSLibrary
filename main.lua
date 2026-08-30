@@ -2820,7 +2820,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             end)
             return DropdownObj
         end
-        function Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, targetParent)
+        function Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
             if type(options) == 'table' then for _, o in ipairs(options) do table.insert(Sec.SearchableText, string.upper(tostring(o))) end end
             Flag = Flag or name
@@ -2831,6 +2831,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             local SearchStr = string.upper(name)
             if type(options) == "table" then for _, o in ipairs(options) do SearchStr = SearchStr .. " " .. string.upper(tostring(o)) end end
             table.insert(Sec.ElementsList, { text = SearchStr, gui = Droprow })
+            if tooltip and tooltip ~= "" and Window.SetTooltip then Window:SetTooltip(Droprow, tooltip) end
             Droprow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Droprow.BackgroundTransparency = 1
             Droprow.BorderSizePixel = 0
