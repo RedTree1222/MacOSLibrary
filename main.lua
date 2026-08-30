@@ -21,14 +21,15 @@ local BlurEnabled = false
 local CleanupKeybinds = {}
 local CleanupToggles = {}
 local RegisteredElements = {}
+local PanicDefaults = {}
 local ActiveKeybindData = {}
 local IsPromptingKeybind = false
 local KeybindPromptCallback = nil
 local KeybindPromptElementName = nil
 local RefreshKeybindsUI = nil
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")    local RunService = game:GetService("RunService")
+    local TextService = game:GetService("TextService")
 local function Tp(ins, pos, time)
     TweenService:Create(ins, TweenInfo.new(time, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut), {Position = pos}):Play()
 end
@@ -1375,6 +1376,18 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         end)
     end
     Window.RebindVisibleKey = RebindVisibleKey
+    Window.OnPanic = nil
+    function Window.Panic()
+        local Flags = {}
+        for Flag in pairs(PanicDefaults) do table.insert(Flags, Flag) end
+        for _, Flag in ipairs(Flags) do
+            local Element = ConfigManager.Elements[Flag]
+            if Element and Element.Set then
+                pcall(Element.Set, Element, PanicDefaults[Flag])
+            end
+        end
+        if Window.OnPanic then pcall(Window.OnPanic) end
+    end
     if visiblekey then
         Minimize.MouseButton1Click:Connect(function()
             Window:ToggleVisible()
@@ -1956,8 +1969,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             function GroupObj:AddButton(name, callback, isDestructive, tooltip) return Sec:Button(name, callback, isDestructive, ContentFrame, tooltip) end
             function GroupObj:AddSlider(name, min, max, default, callback, Flag, tooltip) return Sec:Slider(name, min, max, default, callback, Flag, ContentFrame, tooltip) end
             function GroupObj:AddDropdown(name, options, default, callback, Flag, tooltip) return Sec:Dropdown(name, options, default, callback, Flag, ContentFrame, tooltip) end
-            function GroupObj:AddMultiDropdown(name, options, defaultOptions, callback, Flag) return Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, ContentFrame) end
-            function GroupObj:AddColorPicker(name, default, callback, Flag) return Sec:ColorPicker(name, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddMultiDropdown(name, options, defaultOptions, callback, Flag, tooltip) return Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, ContentFrame, tooltip) end
+            function GroupObj:AddColorPicker(name, default, callback, Flag, tooltip) return Sec:ColorPicker(name, default, callback, Flag, ContentFrame, tooltip) end
             function GroupObj:AddKeybind(name, default, callback, Flag, onRebind) return Sec:Keybind(name, default, callback, Flag, ContentFrame, onRebind) end
             function GroupObj:AddLabel(text) return Sec:Label(text, ContentFrame) end
             function GroupObj:AddParagraph(title, content) return Sec:Paragraph(title, content, ContentFrame) end
@@ -2416,6 +2429,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Window:PromptKeybind(Toggle, Flag)
             end)
             RegisteredElements[Flag] = Toggle
+            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = defaultmode end
             ConfigManager.Elements[Flag] = { Value = Mode, Set = function(self, val) if Mode ~= val then Toggle() end end, SetDisabled = function(state) Disabled = state and true or false; ApplyDisabledVisual() end }
             return { SetDisabled = function(state) Disabled = state and true or false; ApplyDisabledVisual() end }
         end
@@ -2470,6 +2484,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             RegisterTheme(TextBox, "TextColor3", Color3.fromRGB(160, 160, 180), Color3.fromRGB(140, 140, 155))
             TextBox.TextSize = 15
             TextBox.TextXAlignment = Enum.TextXAlignment.Left
+            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = "" end
             ConfigManager.Elements[Flag] = { Value = TextBox.Text, Set = function(self, val) TextBox.Text = val; if callback then callback(val) end end }
             if callback then
                 TextBox.FocusLost:Connect(function()
@@ -2597,6 +2612,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Fill.BackgroundTransparency = Disabled and 0.5 or 0
                 Thumb.BackgroundTransparency = Disabled and 0.5 or 0
             end
+            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = default end
             ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) SetValue(val) end, SetDisabled = SetDisabled }
             return { SetDisabled = SetDisabled }
         end
@@ -2795,7 +2811,8 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Arrow.TextTransparency = Disabled and 0.45 or 0
             end
             DropdownObj.SetDisabled = SetDisabled
-            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) CurrentValue = val; Droplabel.Text = val; if callback then callback(val) end end, SetDisabled = SetDisabled }
+            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = default end
+            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) CurrentValue = val; ConfigManager.Elements[Flag].Value = val; Droplabel.Text = val; if callback then callback(val) end end, SetDisabled = SetDisabled }
             Dropbtn.MouseButton1Click:Connect(function()
                 if Disabled then return end
                 if Opened then
@@ -3013,7 +3030,8 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Arrow.TextTransparency = Disabled and 0.45 or 0
             end
             DropdownObj.SetDisabled = SetDisabled
-            ConfigManager.Elements[Flag] = { Value = CurrentValues, Set = function(self, val) CurrentValues = val; UpdateLabel(); DropdownObj:Refresh(options); if callback then callback(val) end end, SetDisabled = SetDisabled }
+            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = defaultOptions end
+            ConfigManager.Elements[Flag] = { Value = CurrentValues, Set = function(self, val) if type(val) ~= "table" then return end; CurrentValues = val; UpdateLabel(); ConfigManager.Elements[Flag].Value = val; if callback then callback(val) end end, SetDisabled = SetDisabled }
             Dropbtn.MouseButton1Click:Connect(function()
                 if Disabled then return end
                 if Opened then
@@ -3038,13 +3056,14 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             end)
             return DropdownObj
         end
-        function Sec:ColorPicker(name, default, callback, Flag, targetParent)
+        function Sec:ColorPicker(name, default, callback, Flag, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Cprow = Instance.new("Frame")
             Cprow.Name = "cprow"
             Cprow.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Cprow })
+            if tooltip and tooltip ~= "" and Window.SetTooltip then Window:SetTooltip(Cprow, tooltip) end
             Cprow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Cprow.BackgroundTransparency = 1
             Cprow.BorderSizePixel = 0
@@ -3239,7 +3258,8 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end)
             RefreshDisplay()
-            ConfigManager.Elements[Flag] = { Value = {R=CurrentColor.R, G=CurrentColor.G, B=CurrentColor.B}, Set = function(self, val) local Col = Color3.new(val.R, val.G, val.B); H,S,V = Color3.toHSV(Col); RefreshDisplay() end }
+            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = {R = default.R, G = default.G, B = default.B} end
+            ConfigManager.Elements[Flag] = { Value = {R=CurrentColor.R, G=CurrentColor.G, B=CurrentColor.B}, Set = function(self, val) local Col = Color3.new(val.R, val.G, val.B); H,S,V = Color3.toHSV(Col); ConfigManager.Elements[Flag].Value = {R = Col.R, G = Col.G, B = Col.B}; RefreshDisplay(); if callback then callback(Col) end end }
             Preview.MouseButton1Click:Connect(function()
                 if PickerOpen then
                     PickerOpen = false
@@ -3407,6 +3427,12 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end
         end)
+        LeftGroup:Switch("Panic", false, function(v)
+            if not v then return end
+            pcall(function() Window.Panic() end)
+            local SelfElement = ConfigManager.Elements["Settings_Panic"]
+            if SelfElement and SelfElement.Set then SelfElement:Set(false) end
+        end, "Settings_Panic")
         LeftGroup:Keybind("Menu Bind", Enum.KeyCode.LeftControl, function(v)
             if v then
                 visiblekey = v.KeyCode
@@ -3951,7 +3977,6 @@ local KeybindSec = nil
         local TooltipFrame = Instance.new("Frame")
         TooltipFrame.Name = "Tooltip"
         TooltipFrame.Parent = TooltipGui
-        TooltipFrame.AutomaticSize = Enum.AutomaticSize.XY
         TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
         TooltipFrame.Visible = false
         TooltipFrame.ZIndex = 99999
@@ -3979,7 +4004,6 @@ local KeybindSec = nil
         local TooltipText = Instance.new("TextLabel")
         TooltipText.Name = "TooltipText"
         TooltipText.Parent = TooltipFrame
-        TooltipText.AutomaticSize = Enum.AutomaticSize.XY
         TooltipText.Size = UDim2.new(0, 0, 0, 0)
         TooltipText.BackgroundTransparency = 1
         TooltipText.Font = Enum.Font.BuilderSansMedium
@@ -3997,7 +4021,9 @@ local KeybindSec = nil
             if TooltipShowThread then task.cancel(TooltipShowThread) end
             TooltipShowThread = task.delay(0.2, function()
                 TooltipText.Text = text
-                TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
+                local TextBounds = TextService:GetTextSize(text, 13, Enum.Font.BuilderSansMedium, Vector2.new(320, 10000))
+                TooltipText.Size = UDim2.new(0, TextBounds.X, 0, TextBounds.Y)
+                TooltipFrame.Size = UDim2.new(0, TextBounds.X + 20, 0, TextBounds.Y + 12)
                 TooltipFrame.BackgroundTransparency = 0.08
                 TooltipText.TextTransparency = 0
                 TooltipFrame.Visible = true
