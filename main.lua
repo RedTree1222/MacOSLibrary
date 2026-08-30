@@ -1599,9 +1599,9 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         Sidebardivider.Position = UDim2.new(0, 0, 0.00215982716, 0)
         Sidebardivider.Size = UDim2.new(0, IsSidebarCollapsed and 34 or (ExpandedSidebarWidth - 7), 0, 20)
         Sidebardivider.Font = Enum.Font.BuilderSansBold
-        Sidebardivider.Text = name
+        Sidebardivider.Text = string.upper(name or "")
         RegisterTheme(Sidebardivider, "TextColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(100, 100, 120))
-        Sidebardivider.TextSize = 11
+        Sidebardivider.TextSize = 10
         Sidebardivider.TextWrapped = true
         Sidebardivider.TextXAlignment = Enum.TextXAlignment.Left
         Sidebardivider.TextYAlignment = Enum.TextYAlignment.Bottom
@@ -1945,7 +1945,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             function GroupObj:AddDropdown(name, options, default, callback, Flag, tooltip) return Sec:Dropdown(name, options, default, callback, Flag, ContentFrame, tooltip) end
             function GroupObj:AddMultiDropdown(name, options, defaultOptions, callback, Flag) return Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, ContentFrame) end
             function GroupObj:AddColorPicker(name, default, callback, Flag) return Sec:ColorPicker(name, default, callback, Flag, ContentFrame) end
-            function GroupObj:AddKeybind(name, default, callback, Flag) return Sec:Keybind(name, default, callback, Flag, ContentFrame) end
+            function GroupObj:AddKeybind(name, default, callback, Flag, onRebind) return Sec:Keybind(name, default, callback, Flag, ContentFrame, onRebind) end
             function GroupObj:AddLabel(text) return Sec:Label(text, ContentFrame) end
             function GroupObj:AddParagraph(title, content) return Sec:Paragraph(title, content, ContentFrame) end
             function GroupObj:AddTextField(name, placeholder, callback, Flag) return Sec:TextField(name, placeholder, callback, Flag, ContentFrame) end
@@ -2132,7 +2132,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 function TabObj:MultiDropdown(n, opt, d, c, f) return Sec:MultiDropdown(n, opt, d, c, f, TabContent) end
                 function TabObj:AddColorPicker(n, d, c, f) return Sec:ColorPicker(n, d, c, f, TabContent) end
                 function TabObj:ColorPicker(n, d, c, f) return Sec:ColorPicker(n, d, c, f, TabContent) end
-                function TabObj:AddKeybind(n, d, c, f) return Sec:Keybind(n, d, c, f, TabContent) end
+                function TabObj:AddKeybind(n, d, c, f, onRebind) return Sec:Keybind(n, d, c, f, TabContent, onRebind) end
                 function TabObj:Keybind(n, d, c, f) return Sec:Keybind(n, d, c, f, TabContent) end
                 function TabObj:AddTextField(n, p, c, f) return Sec:TextField(n, p, c, f, TabContent) end
                 function TabObj:TextField(n, p, c, f) return Sec:TextField(n, p, c, f, TabContent) end
@@ -2191,22 +2191,36 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
         Sec.RightGroupbox = Sec.AddRightGroupbox
         Sec.AddGroupbox = Sec.Groupbox
         function Sec:Divider(name, targetParent)
-            local Section = Instance.new("TextLabel")
+            local Section = Instance.new("Frame")
             Section.Name = "section"
             Section.Parent = targetParent or Workareamain
-            table.insert(Sec.ElementsList, { text = string.upper(name), gui = Section })
+            local HasLabel = name ~= nil and name ~= ""
+            table.insert(Sec.ElementsList, { text = string.upper(name or ""), gui = Section })
             Section.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Section.BackgroundTransparency = 1
-            Section.BorderSizePixel = 2
-            Section.Size = UDim2.new(1, 0, 0, 50)
-            Section.Font = Enum.Font.BuilderSansBold
-            Section.LineHeight = 1.180
-            Section.Text = name
-            RegisterTheme(Section, "TextColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(100, 100, 120))
-            Section.TextSize = 13
-            Section.TextWrapped = true
-            Section.TextXAlignment = Enum.TextXAlignment.Left
-            Section.TextYAlignment = Enum.TextYAlignment.Bottom
+            Section.BorderSizePixel = 0
+            Section.Size = UDim2.new(1, 0, 0, HasLabel and 34 or 18)
+            local Label = Instance.new("TextLabel")
+            Label.Name = "sectionlabel"
+            Label.Parent = Section
+            Label.BackgroundTransparency = 1
+            Label.Size = UDim2.new(1, 0, 0, 16)
+            Label.Position = UDim2.new(0, 0, 0, 6)
+            Label.Font = Enum.Font.BuilderSansBold
+            Label.Text = string.upper(name or "")
+            RegisterTheme(Label, "TextColor3", Color3.fromRGB(150, 150, 165), Color3.fromRGB(110, 110, 130))
+            Label.TextSize = 11
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Visible = HasLabel
+            local Line = Instance.new("Frame")
+            Line.Name = "Line"
+            Line.Parent = Section
+            Line.BorderSizePixel = 0
+            Line.Position = UDim2.new(0, 0, 0, 26)
+            Line.Size = UDim2.new(1, 0, 0, 1)
+            RegisterTheme(Line, "BackgroundColor3", Color3.fromRGB(140, 140, 155), Color3.fromRGB(100, 100, 120))
+            Line.BackgroundTransparency = 0.88
+            Line.Visible = HasLabel
         end
         function Sec:Button(name, callback, isDestructive, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
@@ -2253,6 +2267,12 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Button.BackgroundTransparency = 0
                 Uc_3.CornerRadius = UDim.new(1, 0)
             end
+            local Disabled = false
+            local function SetDisabled(state)
+                Disabled = state and true or false
+                Button.BackgroundTransparency = Disabled and 0.45 or 0
+                Button.TextTransparency = Disabled and 0.45 or 0
+            end
             local OgSize = UDim2.new(1, 0, 0, 37)
             Button.MouseButton1Down:Connect(function()
                 TweenService:Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -6, 0, 35)}):Play()
@@ -2264,11 +2284,13 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 TweenService:Create(Button, TweenInfo.new(0.1), {Size = OgSize}):Play()
             end)
             Button.MouseButton1Click:Connect(function()
+                if Disabled then return end
                 if callback then callback() end
             end)
             Button.MouseButton2Click:Connect(function()
                 Window:PromptKeybind(callback, Flag)
             end)
+            return { SetDisabled = SetDisabled }
         end
         function Sec:Label(name, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
@@ -2341,10 +2363,17 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end
             UpdateSwitchVisual()
+            local Disabled = false
+            local function ApplyDisabledVisual()
+                Switchlabel.TextTransparency = Disabled and 0.55 or 0
+                Frame.BackgroundTransparency = Disabled and 0.45 or 0
+                TextButton.BackgroundTransparency = Disabled and 0.45 or 0
+            end
             if callback then
                 pcall(callback, Mode)
             end
             local function Toggle()
+                if Disabled then return end
                 Mode = not Mode
                 if ConfigManager.Elements[Flag] then ConfigManager.Elements[Flag].Value = Mode end
                 if type(Flag) == "string" and string.find(Flag, "^Settings_") then ConfigManager:SaveUISettings() end
@@ -2374,7 +2403,8 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Window:PromptKeybind(Toggle, Flag)
             end)
             RegisteredElements[Flag] = Toggle
-            ConfigManager.Elements[Flag] = { Value = Mode, Set = function(self, val) if Mode ~= val then Toggle() end end }
+            ConfigManager.Elements[Flag] = { Value = Mode, Set = function(self, val) if Mode ~= val then Toggle() end end, SetDisabled = function(state) Disabled = state and true or false; ApplyDisabledVisual() end }
+            return { SetDisabled = function(state) Disabled = state and true or false; ApplyDisabledVisual() end }
         end
         function Sec:TextField(name, placeholder, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
@@ -2504,7 +2534,9 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             Uc_t.CornerRadius = UDim.new(1, 0)
             Uc_t.Parent = Thumb
             local CurrentValue = math.clamp(default, min, max)
+            local Disabled = false
             local function SetValue(v)
+                if Disabled then return end
                 CurrentValue = math.clamp(math.round(v), min, max)
                 if ConfigManager.Elements[Flag] then ConfigManager.Elements[Flag].Value = CurrentValue end
                 if type(Flag) == "string" and string.find(Flag, "^Settings_") then ConfigManager:SaveUISettings() end
@@ -2544,7 +2576,16 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                     DraggingSlider = false
                 end
             end)
-            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) SetValue(val) end }
+            local function SetDisabled(state)
+                Disabled = state and true or false
+                Sliderlabel.TextTransparency = Disabled and 0.55 or 0
+                Valuelabel.TextTransparency = Disabled and 0.45 or 0
+                Rail.BackgroundTransparency = Disabled and 0.5 or 0
+                Fill.BackgroundTransparency = Disabled and 0.5 or 0
+                Thumb.BackgroundTransparency = Disabled and 0.5 or 0
+            end
+            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) SetValue(val) end, SetDisabled = SetDisabled }
+            return { SetDisabled = SetDisabled }
         end
         function Sec:Dropdown(name, options, default, callback, Flag, targetParent, tooltip)
             table.insert(Sec.SearchableText, string.upper(name))
@@ -2635,6 +2676,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             Listpadding.PaddingTop = UDim.new(0, 4)
             Listpadding.PaddingBottom = UDim.new(0, 4)
             local Opened = false
+            local Disabled = false
             local function CloseList()
                 Opened = false
                 Arrow.Text = "v"
@@ -2731,8 +2773,17 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                     if callback then callback(CurrentValue) end
                 end)
             end
-            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) CurrentValue = val; Droplabel.Text = val; if callback then callback(val) end end }
+            local function SetDisabled(state)
+                Disabled = state and true or false
+                Droplabel_top.TextTransparency = Disabled and 0.55 or 0
+                Dropbtn.BackgroundTransparency = Disabled and 0.45 or 0
+                Droplabel.TextTransparency = Disabled and 0.45 or 0
+                Arrow.TextTransparency = Disabled and 0.45 or 0
+            end
+            DropdownObj.SetDisabled = SetDisabled
+            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) CurrentValue = val; Droplabel.Text = val; if callback then callback(val) end end, SetDisabled = SetDisabled }
             Dropbtn.MouseButton1Click:Connect(function()
+                if Disabled then return end
                 if Opened then
                     CloseList()
                 else
@@ -2856,6 +2907,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             Listpadding.PaddingTop = UDim.new(0, 4)
             Listpadding.PaddingBottom = UDim.new(0, 4)
             local Opened = false
+            local Disabled = false
             local function CloseList()
                 Opened = false
                 Arrow.Text = "v"
@@ -2938,8 +2990,17 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end
             DropdownObj:Refresh(options)
-            ConfigManager.Elements[Flag] = { Value = CurrentValues, Set = function(self, val) CurrentValues = val; UpdateLabel(); DropdownObj:Refresh(options); if callback then callback(val) end end }
+            local function SetDisabled(state)
+                Disabled = state and true or false
+                Droplabel_top.TextTransparency = Disabled and 0.55 or 0
+                Dropbtn.BackgroundTransparency = Disabled and 0.45 or 0
+                Droplabel.TextTransparency = Disabled and 0.45 or 0
+                Arrow.TextTransparency = Disabled and 0.45 or 0
+            end
+            DropdownObj.SetDisabled = SetDisabled
+            ConfigManager.Elements[Flag] = { Value = CurrentValues, Set = function(self, val) CurrentValues = val; UpdateLabel(); DropdownObj:Refresh(options); if callback then callback(val) end end, SetDisabled = SetDisabled }
             Dropbtn.MouseButton1Click:Connect(function()
+                if Disabled then return end
                 if Opened then
                     CloseList()
                 else
@@ -3178,7 +3239,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end)
         end
-        function Sec:Keybind(name, default, callback, Flag, targetParent)
+        function Sec:Keybind(name, default, callback, Flag, targetParent, onRebind)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Kbrow = Instance.new("Frame")
@@ -3244,10 +3305,12 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                     CurrentKey = nil
                     if ConfigManager.Elements[Flag] then ConfigManager.Elements[Flag].Value = "None" end
                     Kbbtn.Text = "None"
+                    if onRebind then pcall(onRebind, nil) end
                 elseif input.KeyCode ~= Enum.KeyCode.Unknown then
                     CurrentKey = input.KeyCode
                     if ConfigManager.Elements[Flag] then ConfigManager.Elements[Flag].Value = CurrentKey.Name end
                     Kbbtn.Text = input.KeyCode.Name
+                    if onRebind then pcall(onRebind, input.KeyCode) end
                 else
                     Kbbtn.Text = CurrentKey and CurrentKey.Name or "None"
                 end
