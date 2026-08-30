@@ -62,7 +62,7 @@ function ConfigManager:Load(name)
             local ElementsData = Data.Elements or Data
             for Flag, value in pairs(ElementsData) do
                 if self.Elements[Flag] and self.Elements[Flag].Set then
-                    self.Elements[Flag]:Set(value)
+                    pcall(function() self.Elements[Flag]:Set(value) end)
                 end
             end
             if Data.Keybinds then
@@ -152,7 +152,7 @@ function ConfigManager:LoadUISettings()
             if Data.Settings then
                 for Flag, val in pairs(Data.Settings) do
                     if self.Elements[Flag] then
-                        self.Elements[Flag]:Set(val)
+                        pcall(function() self.Elements[Flag]:Set(val) end)
                     else
                         self.Elements[Flag] = { Value = val }
                     end
@@ -3307,7 +3307,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end)
             RefreshDisplay()
-            ConfigManager.Elements[Flag] = { Value = {R=CurrentColor.R, G=CurrentColor.G, B=CurrentColor.B}, Set = function(self, val) local Col = Color3.new(val.R, val.G, val.B); H,S,V = Color3.toHSV(Col); RefreshDisplay() end }
+            ConfigManager.Elements[Flag] = { Value = {R=CurrentColor.R, G=CurrentColor.G, B=CurrentColor.B}, Set = function(self, val) if type(val) ~= "table" then return end; if not val.R or not val.G or not val.B then return end; local Col = Color3.new(val.R, val.G, val.B); H,S,V = Color3.toHSV(Col); RefreshDisplay() end }
             Preview.MouseButton1Click:Connect(function()
                 if PickerOpen then
                     PickerOpen = false
@@ -3403,7 +3403,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             end
         end)
             end)
-            ConfigManager.Elements[Flag] = { Value = CurrentKey and CurrentKey.Name or "None", Set = function(self, val) if val == "None" then CurrentKey = nil; Kbbtn.Text = "None" else CurrentKey = Enum.KeyCode[val]; Kbbtn.Text = val end end }
+            ConfigManager.Elements[Flag] = { Value = CurrentKey and CurrentKey.Name or "None", Set = function(self, val) if type(val) ~= "string" then return end; if val == "None" then CurrentKey = nil; Kbbtn.Text = "None" else local ok, kc = pcall(function() return Enum.KeyCode[val] end); if ok and kc then CurrentKey = kc; Kbbtn.Text = val end end end }
             local KbConn = UserInputService.InputBegan:Connect(function(input, gp)
                 if not Picking and not gp and input.UserInputType == Enum.UserInputType.Keyboard then
                     if CurrentKey and input.KeyCode == CurrentKey then
