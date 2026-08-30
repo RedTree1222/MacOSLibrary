@@ -2561,6 +2561,28 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             local Uc_t = Instance.new("UICorner")
             Uc_t.CornerRadius = UDim.new(1, 0)
             Uc_t.Parent = Thumb
+            -- Right-click input TextBox (like Obsidian)
+            local InputTextBox = Instance.new("TextBox")
+            InputTextBox.Name = "inputbox"
+            InputTextBox.Parent = Rail
+            InputTextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            InputTextBox.BackgroundTransparency = 0.1
+            InputTextBox.Size = UDim2.new(1, 4, 1, 4)
+            InputTextBox.Position = UDim2.new(0, -2, 0, -2)
+            InputTextBox.Font = Enum.Font.BuilderSansMedium
+            InputTextBox.TextSize = 12
+            InputTextBox.TextColor3 = Color3.fromRGB(30, 30, 30)
+            InputTextBox.Text = ""
+            InputTextBox.Visible = false
+            InputTextBox.ClearTextOnFocus = false
+            InputTextBox.ZIndex = 25
+            local InputCorner = Instance.new("UICorner")
+            InputCorner.CornerRadius = UDim.new(0, 4)
+            InputCorner.Parent = InputTextBox
+            local InputStroke = Instance.new("UIStroke")
+            InputStroke.Color = Color3.fromRGB(180, 180, 180)
+            InputStroke.Thickness = 1
+            InputStroke.Parent = InputTextBox
             local CurrentValue = math.clamp(default, min, max)
             local Disabled = false
             local function SetValue(v)
@@ -2575,17 +2597,66 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 if callback then callback(CurrentValue) end
             end
             SetValue(default)
-            local DraggingSlider = false
-            Thumb.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    DraggingSlider = true
+            -- Input validation for right-click TextBox
+            local LastValidText = ""
+            InputTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+                local Text = InputTextBox.Text
+                local AsNum = tonumber(Text)
+                if #Text > 0 and not AsNum and Text ~= "-" then
+                    InputTextBox.Text = LastValidText
+                else
+                -- Only allow integers (library sliders round to whole numbers)
+                if Text:find("%.") then
+                    InputTextBox.Text = LastValidText
+                    return
+                end
+                    LastValidText = Text
+                    if AsNum then
+                        if AsNum > max then InputTextBox.Text = tostring(max)
+                        elseif AsNum < min then InputTextBox.Text = tostring(min)
+                        end
+                    end
                 end
             end)
+            InputTextBox.FocusLost:Connect(function()
+                InputTextBox.Visible = false
+                Valuelabel.TextTransparency = 0
+                local Num = tonumber(InputTextBox.Text)
+                if not Num then return end
+                Num = math.floor(Num + 0.5)
+                SetValue(math.clamp(Num, min, max))
+            end)
+            InputTextBox.Focused:Connect(function()
+                InputStroke.Color = CurrentAccentColor
+            end)
+            InputTextBox.FocusLost:Connect(function()
+                InputStroke.Color = Color3.fromRGB(180, 180, 180)
+            end)
+            -- Right-click on rail/thumb to show input box
+            local function ShowInput()
+                InputTextBox.Text = tostring(CurrentValue)
+                InputTextBox.Visible = true
+                Valuelabel.TextTransparency = 1
+                task.spawn(function() InputTextBox:CaptureFocus() end)
+            end
             Rail.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    ShowInput()
+                    return
+                end
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     DraggingSlider = true
                     local RelX = math.clamp(input.Position.X - Rail.AbsolutePosition.X, 0, Rail.AbsoluteSize.X)
                     SetValue(min + (max - min) * (RelX / Rail.AbsoluteSize.X))
+                end
+            end)
+            Thumb.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    ShowInput()
+                    return
+                end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    DraggingSlider = true
                 end
             end)
             UserInputService.InputEnded:Connect(function(input)
