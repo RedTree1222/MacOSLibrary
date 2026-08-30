@@ -4124,7 +4124,8 @@ local KeybindSec = nil
                 if entry and entry.gui and entry.gui.Parent then
                     if MouseIsOverGui(entry.gui) then
                         if CurrentHoverInstance ~= entry.gui then
-                            CurrentHoverInstance = entry.guin                            Window:ShowTooltip(entry.text)
+                            CurrentHoverInstance = entry.gui
+n                            Window:ShowTooltip(entry.text)
                         end
                         found = true
                         break
