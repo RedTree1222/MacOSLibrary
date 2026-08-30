@@ -21,15 +21,14 @@ local BlurEnabled = false
 local CleanupKeybinds = {}
 local CleanupToggles = {}
 local RegisteredElements = {}
-local PanicDefaults = {}
 local ActiveKeybindData = {}
 local IsPromptingKeybind = false
 local KeybindPromptCallback = nil
 local KeybindPromptElementName = nil
 local RefreshKeybindsUI = nil
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")    local RunService = game:GetService("RunService")
-    local TextService = game:GetService("TextService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local function Tp(ins, pos, time)
     TweenService:Create(ins, TweenInfo.new(time, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut), {Position = pos}):Play()
 end
@@ -1376,18 +1375,6 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         end)
     end
     Window.RebindVisibleKey = RebindVisibleKey
-    Window.OnPanic = nil
-    function Window.Panic()
-        local Flags = {}
-        for Flag in pairs(PanicDefaults) do table.insert(Flags, Flag) end
-        for _, Flag in ipairs(Flags) do
-            local Element = ConfigManager.Elements[Flag]
-            if Element and Element.Set then
-                pcall(Element.Set, Element, PanicDefaults[Flag])
-            end
-        end
-        if Window.OnPanic then pcall(Window.OnPanic) end
-    end
     if visiblekey then
         Minimize.MouseButton1Click:Connect(function()
             Window:ToggleVisible()
@@ -1969,8 +1956,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             function GroupObj:AddButton(name, callback, isDestructive, tooltip) return Sec:Button(name, callback, isDestructive, ContentFrame, tooltip) end
             function GroupObj:AddSlider(name, min, max, default, callback, Flag, tooltip) return Sec:Slider(name, min, max, default, callback, Flag, ContentFrame, tooltip) end
             function GroupObj:AddDropdown(name, options, default, callback, Flag, tooltip) return Sec:Dropdown(name, options, default, callback, Flag, ContentFrame, tooltip) end
-            function GroupObj:AddMultiDropdown(name, options, defaultOptions, callback, Flag, tooltip) return Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, ContentFrame, tooltip) end
-            function GroupObj:AddColorPicker(name, default, callback, Flag, tooltip) return Sec:ColorPicker(name, default, callback, Flag, ContentFrame, tooltip) end
+            function GroupObj:AddMultiDropdown(name, options, defaultOptions, callback, Flag) return Sec:MultiDropdown(name, options, defaultOptions, callback, Flag, ContentFrame) end
+            function GroupObj:AddColorPicker(name, default, callback, Flag) return Sec:ColorPicker(name, default, callback, Flag, ContentFrame) end
             function GroupObj:AddKeybind(name, default, callback, Flag, onRebind) return Sec:Keybind(name, default, callback, Flag, ContentFrame, onRebind) end
             function GroupObj:AddLabel(text) return Sec:Label(text, ContentFrame) end
             function GroupObj:AddParagraph(title, content) return Sec:Paragraph(title, content, ContentFrame) end
@@ -2429,7 +2416,6 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Window:PromptKeybind(Toggle, Flag)
             end)
             RegisteredElements[Flag] = Toggle
-            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = defaultmode end
             ConfigManager.Elements[Flag] = { Value = Mode, Set = function(self, val) if Mode ~= val then Toggle() end end, SetDisabled = function(state) Disabled = state and true or false; ApplyDisabledVisual() end }
             return { SetDisabled = function(state) Disabled = state and true or false; ApplyDisabledVisual() end }
         end
@@ -2484,7 +2470,6 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             RegisterTheme(TextBox, "TextColor3", Color3.fromRGB(160, 160, 180), Color3.fromRGB(140, 140, 155))
             TextBox.TextSize = 15
             TextBox.TextXAlignment = Enum.TextXAlignment.Left
-            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = "" end
             ConfigManager.Elements[Flag] = { Value = TextBox.Text, Set = function(self, val) TextBox.Text = val; if callback then callback(val) end end }
             if callback then
                 TextBox.FocusLost:Connect(function()
@@ -2561,7 +2546,6 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             local Uc_t = Instance.new("UICorner")
             Uc_t.CornerRadius = UDim.new(1, 0)
             Uc_t.Parent = Thumb
-            -- Right-click input TextBox (like Obsidian)
             local InputTextBox = Instance.new("TextBox")
             InputTextBox.Name = "inputbox"
             InputTextBox.Parent = Rail
@@ -2597,7 +2581,6 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 if callback then callback(CurrentValue) end
             end
             SetValue(default)
-            -- Input validation for right-click TextBox
             local LastValidText = ""
             InputTextBox:GetPropertyChangedSignal("Text"):Connect(function()
                 local Text = InputTextBox.Text
@@ -2605,11 +2588,10 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 if #Text > 0 and not AsNum and Text ~= "-" then
                     InputTextBox.Text = LastValidText
                 else
-                -- Only allow integers (library sliders round to whole numbers)
-                if Text:find("%.") then
-                    InputTextBox.Text = LastValidText
-                    return
-                end
+                    if Text:find("%.") then
+                        InputTextBox.Text = LastValidText
+                        return
+                    end
                     LastValidText = Text
                     if AsNum then
                         if AsNum > max then InputTextBox.Text = tostring(max)
@@ -2632,13 +2614,22 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             InputTextBox.FocusLost:Connect(function()
                 InputStroke.Color = Color3.fromRGB(180, 180, 180)
             end)
-            -- Right-click on rail/thumb to show input box
             local function ShowInput()
                 InputTextBox.Text = tostring(CurrentValue)
                 InputTextBox.Visible = true
                 Valuelabel.TextTransparency = 1
                 task.spawn(function() InputTextBox:CaptureFocus() end)
             end
+            local DraggingSlider = false
+            Thumb.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    ShowInput()
+                    return
+                end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    DraggingSlider = true
+                end
+            end)
             Rail.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton2 then
                     ShowInput()
@@ -2648,15 +2639,6 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                     DraggingSlider = true
                     local RelX = math.clamp(input.Position.X - Rail.AbsolutePosition.X, 0, Rail.AbsoluteSize.X)
                     SetValue(min + (max - min) * (RelX / Rail.AbsoluteSize.X))
-                end
-            end)
-            Thumb.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton2 then
-                    ShowInput()
-                    return
-                end
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    DraggingSlider = true
                 end
             end)
             UserInputService.InputEnded:Connect(function(input)
@@ -2683,7 +2665,6 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Fill.BackgroundTransparency = Disabled and 0.5 or 0
                 Thumb.BackgroundTransparency = Disabled and 0.5 or 0
             end
-            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = default end
             ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) SetValue(val) end, SetDisabled = SetDisabled }
             return { SetDisabled = SetDisabled }
         end
@@ -2882,8 +2863,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Arrow.TextTransparency = Disabled and 0.45 or 0
             end
             DropdownObj.SetDisabled = SetDisabled
-            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = default end
-            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) CurrentValue = val; ConfigManager.Elements[Flag].Value = val; Droplabel.Text = val; if callback then callback(val) end end, SetDisabled = SetDisabled }
+            ConfigManager.Elements[Flag] = { Value = CurrentValue, Set = function(self, val) CurrentValue = val; Droplabel.Text = val; if callback then callback(val) end end, SetDisabled = SetDisabled }
             Dropbtn.MouseButton1Click:Connect(function()
                 if Disabled then return end
                 if Opened then
@@ -3101,8 +3081,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 Arrow.TextTransparency = Disabled and 0.45 or 0
             end
             DropdownObj.SetDisabled = SetDisabled
-            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = defaultOptions end
-            ConfigManager.Elements[Flag] = { Value = CurrentValues, Set = function(self, val) if type(val) ~= "table" then return end; CurrentValues = val; UpdateLabel(); ConfigManager.Elements[Flag].Value = val; if callback then callback(val) end end, SetDisabled = SetDisabled }
+            ConfigManager.Elements[Flag] = { Value = CurrentValues, Set = function(self, val) CurrentValues = val; UpdateLabel(); DropdownObj:Refresh(options); if callback then callback(val) end end, SetDisabled = SetDisabled }
             Dropbtn.MouseButton1Click:Connect(function()
                 if Disabled then return end
                 if Opened then
@@ -3127,14 +3106,13 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
             end)
             return DropdownObj
         end
-        function Sec:ColorPicker(name, default, callback, Flag, targetParent, tooltip)
+        function Sec:ColorPicker(name, default, callback, Flag, targetParent)
             table.insert(Sec.SearchableText, string.upper(name))
             Flag = Flag or name
             local Cprow = Instance.new("Frame")
             Cprow.Name = "cprow"
             Cprow.Parent = targetParent or Workareamain
             table.insert(Sec.ElementsList, { text = string.upper(name), gui = Cprow })
-            if tooltip and tooltip ~= "" and Window.SetTooltip then Window:SetTooltip(Cprow, tooltip) end
             Cprow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Cprow.BackgroundTransparency = 1
             Cprow.BorderSizePixel = 0
@@ -3329,8 +3307,7 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end)
             RefreshDisplay()
-            if type(Flag) == "string" and not string.find(Flag, "^Settings_") then PanicDefaults[Flag] = {R = default.R, G = default.G, B = default.B} end
-            ConfigManager.Elements[Flag] = { Value = {R=CurrentColor.R, G=CurrentColor.G, B=CurrentColor.B}, Set = function(self, val) local Col = Color3.new(val.R, val.G, val.B); H,S,V = Color3.toHSV(Col); ConfigManager.Elements[Flag].Value = {R = Col.R, G = Col.G, B = Col.B}; RefreshDisplay(); if callback then callback(Col) end end }
+            ConfigManager.Elements[Flag] = { Value = {R=CurrentColor.R, G=CurrentColor.G, B=CurrentColor.B}, Set = function(self, val) local Col = Color3.new(val.R, val.G, val.B); H,S,V = Color3.toHSV(Col); RefreshDisplay() end }
             Preview.MouseButton1Click:Connect(function()
                 if PickerOpen then
                     PickerOpen = false
@@ -3498,12 +3475,6 @@ function Sec:AddLeftTabbox() return Sec:Tabbox("left") end
                 end
             end
         end)
-        LeftGroup:Switch("Panic", false, function(v)
-            if not v then return end
-            pcall(function() Window.Panic() end)
-            local SelfElement = ConfigManager.Elements["Settings_Panic"]
-            if SelfElement and SelfElement.Set then SelfElement:Set(false) end
-        end, "Settings_Panic")
         LeftGroup:Keybind("Menu Bind", Enum.KeyCode.LeftControl, function(v)
             if v then
                 visiblekey = v.KeyCode
@@ -4082,8 +4053,7 @@ local KeybindSec = nil
         TooltipText.TextXAlignment = Enum.TextXAlignment.Left
         RegisterTheme(TooltipText, "TextColor3", Color3.fromRGB(100, 100, 100), Color3.fromRGB(170, 170, 185))
 
-        local CurrentHoverInstance = nil
-        local TooltipRegistry = {} -- {gui = element, text = tooltipText}
+        local TooltipRegistry = {}
 
         local function MouseIsOverGui(gui)
             if not gui or not gui.Parent then return false end
@@ -4110,22 +4080,20 @@ local KeybindSec = nil
 
         function Window:HideTooltip()
             TooltipFrame.Visible = false
-            CurrentHoverInstance = nil
         end
 
-        -- Global mouse tracking — check every frame if mouse is over any registered tooltip element
+        local CurrentHoverTooltip = nil
         RunService.RenderStepped:Connect(function()
             local Mouse = UserInputService:GetMouseLocation()
             local ViewportSize = workspace.CurrentCamera.ViewportSize
             local found = false
-            -- Check in reverse order (most recently added first)
             for i = #TooltipRegistry, 1, -1 do
                 local entry = TooltipRegistry[i]
                 if entry and entry.gui and entry.gui.Parent then
                     if MouseIsOverGui(entry.gui) then
-                        if CurrentHoverInstance ~= entry.gui then
-                            CurrentHoverInstance = entry.gui
-n                            Window:ShowTooltip(entry.text)
+                        if CurrentHoverTooltip ~= entry.gui then
+                            CurrentHoverTooltip = entry.gui
+                            Window:ShowTooltip(entry.text)
                         end
                         found = true
                         break
@@ -4134,10 +4102,10 @@ n                            Window:ShowTooltip(entry.text)
                     table.remove(TooltipRegistry, i)
                 end
             end
-            if not found and CurrentHoverInstance then
+            if not found and CurrentHoverTooltip then
                 Window:HideTooltip()
+                CurrentHoverTooltip = nil
             end
-            -- Position tooltip at cursor
             if TooltipFrame.Visible then
                 local X = Mouse.X + 14
                 local Y = Mouse.Y + 14
