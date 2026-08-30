@@ -1381,7 +1381,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
         end)
         RebindVisibleKey(visiblekey)
     end
-    function Window:TempNotify(text1, text2, icon)
+    function Window:TempNotify(text1, text2, icon, options)
         local TempNotifContainer = scrgui:FindFirstChild("TempNotifContainer")
         if not TempNotifContainer then
             TempNotifContainer = Instance.new("Frame")
@@ -1490,7 +1490,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
             ImageTransparency = 0.400
         }):Play()
 
-        task.delay(4.5, function()
+        local function FadeOut()
             if Tempnotif and Tempnotif.Parent then
                 local TwOut = TweenService:Create(Tempnotif, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
                     BackgroundTransparency = 1
@@ -1504,7 +1504,20 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                     Tempnotif:Destroy()
                 end)
             end
-        end)
+        end
+        local NotifyObj = {}
+        function NotifyObj:ChangeDescription(newText)
+            if T2 and T2.Parent then T2.Text = newText end
+        end
+        function NotifyObj:Destroy()
+            FadeOut()
+        end
+        if options and options.Persist then
+            -- stays until :Destroy()
+        else
+            task.delay((options and options.Time) or 4.5, FadeOut)
+        end
+        return NotifyObj
     end
     function Window:Notify(txt1, txt2, b1, icohn, callback)
         if Notif.Visible == true or Notif2.Visible == true then return "Already visible" end
