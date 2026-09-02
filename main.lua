@@ -2131,6 +2131,13 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 local ContentList = Instance.new("UIListLayout")
                 ContentList.Parent = TabContent
                 ContentList.SortOrder = Enum.SortOrder.LayoutOrder
+
+                TabContent.MouseEnter:Connect(function()
+                    if Workareamain then Workareamain.ScrollingEnabled = false end
+                end)
+                TabContent.MouseLeave:Connect(function()
+                    if Workareamain then Workareamain.ScrollingEnabled = true end
+                end)
                 
                 local ContentPadding = Instance.new("UIPadding")
                 ContentPadding.PaddingTop = UDim.new(0, 8)
