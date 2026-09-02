@@ -2125,7 +2125,7 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 TabContent.ScrollBarThickness = 4
                 TabContent.ScrollingDirection = Enum.ScrollingDirection.Y
                 TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-                TabContent.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
+                TabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
                 TabContent.BorderSizePixel = 0
                 
                 local ContentList = Instance.new("UIListLayout")
