@@ -2115,18 +2115,23 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 TabPadding.PaddingRight = UDim.new(0, 12)
                 TabPadding.Parent = TabBtn
 
-                local TabContent = Instance.new("Frame")
+                local TabContent = Instance.new("ScrollingFrame")
                 TabContent.Name = "contentFrame"
                 TabContent.Parent = ContentArea
                 TabContent.BackgroundTransparency = 1
-                TabContent.Size = UDim2.new(1, 0, 0, 0)
-                TabContent.AutomaticSize = Enum.AutomaticSize.Y
+                TabContent.Size = UDim2.new(1, 0, 0, 260)
+                TabContent.AutomaticSize = Enum.AutomaticSize.None
                 TabContent.Visible = false
-
+                TabContent.ScrollBarThickness = 4
+                TabContent.ScrollingDirection = Enum.ScrollingDirection.Y
+                TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+                TabContent.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
+                TabContent.BorderSizePixel = 0
+                
                 local ContentList = Instance.new("UIListLayout")
                 ContentList.Parent = TabContent
                 ContentList.SortOrder = Enum.SortOrder.LayoutOrder
-
+                
                 local ContentPadding = Instance.new("UIPadding")
                 ContentPadding.PaddingTop = UDim.new(0, 8)
                 ContentPadding.PaddingBottom = UDim.new(0, 8)
