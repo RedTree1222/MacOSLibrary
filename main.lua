@@ -2149,8 +2149,8 @@ function Lib:Init(ti, dosplash, visiblekey, deleteprevious)
                 function TabObj:Keybind(n, d, c, f) return Sec:Keybind(n, d, c, f, TabContent) end
                 function TabObj:AddTextField(n, p, c, f) return Sec:TextField(n, p, c, f, TabContent) end
                 function TabObj:TextField(n, p, c, f) return Sec:TextField(n, p, c, f, TabContent) end
-                function TabObj:AddButton(n, c) return Sec:Button(n, c, TabContent) end
-                function TabObj:Button(n, c) return Sec:Button(n, c, TabContent) end
+                function TabObj:AddButton(n, c, isDestructive, tooltip) return Sec:Button(n, c, isDestructive, TabContent, tooltip) end
+                function TabObj:Button(n, c, isDestructive, tooltip) return Sec:Button(n, c, isDestructive, TabContent, tooltip) end
                 function TabObj:AddLabel(n) return Sec:Label(n, TabContent) end
                 function TabObj:Label(n) return Sec:Label(n, TabContent) end
                 function TabObj:AddDivider(n) return Sec:Divider(n, TabContent) end
